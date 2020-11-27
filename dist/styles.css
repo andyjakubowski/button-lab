@@ -49,9 +49,18 @@ main {
 }
 
 .button {
-  padding: 10px;
+  padding: 0 10px;
+  height: 44px;
   border-radius: 4px;
-  background-color: burlywood;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: blue;
+
+  color: white;
+  font-size: 17px;
 }
 
 .button:not(:first-of-type) {
