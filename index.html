@@ -32,7 +32,31 @@
   <body>
     <main>
       <div class="main-content">
-        <h1 class="title">Button Lab</h1>
+        <div class="preview">
+          <div class="preview__pane preview__pane_light">
+            <div class="button button_idle">Send</div>
+            <div class="button button_loading">Send</div>
+            <div class="button button_disabled">Send</div>
+          </div>
+          <div class="preview__pane preview__pane_dark">
+            <div class="button button_idle">Send</div>
+            <div class="button button_loading">Send</div>
+            <div class="button button_disabled">Send</div>
+          </div>
+        </div>
+        <div class="adjustments">
+          <ul class="adjustments__list">
+            <li class="adjustments__list-item"><div class="adjustments__button">Color</div></li>
+            <li class="adjustments__list-item"><div class="adjustments__button">Contrast</div></li>
+            <li class="adjustments__list-item"><div class="adjustments__button">Shape</div></li>
+            <li class="adjustments__list-item"><div class="adjustments__button">Size</div></li>
+            <li class="adjustments__list-item"><div class="adjustments__button">Label</div></li>
+          </ul>
+          <div class="adjustments__slider-container">
+            <input type="range" class="adjustments__slider">
+          </div>
+        </div>
+        
       </div>
     </main>
     <footer class="footer footer_classifier">
