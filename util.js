@@ -2,6 +2,19 @@ const MathUtil = {
   getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
   },
+
+  scale(num, inMin, inMax, outMin, outMax) {
+    if (inMin > inMax || outMin > outMax) {
+      console.warn(
+        "Can't scale a number from or to a range where the range minimum is higher than the maximum."
+      );
+
+      return -1;
+    }
+    const inPercent = (num - inMin) / (inMax - inMin);
+    const scaledNum = inPercent * (outMax - outMin) + outMin;
+    return scaledNum;
+  },
 };
 
 const ColorUtil = (function buildColorUtil() {
