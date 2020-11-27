@@ -2,72 +2,108 @@ function handleDOMContentLoaded() {
   App.init();
 }
 
+const Data = (function makeData() {
+  let hue;
+  let saturation;
+  let value;
+  let borderRadius;
+  let labelTransform;
+
+  const CONFIG = {
+    SATURATION_PERCENT: 75,
+    LIGHTNESS_PERCENT_ARBITRARY_MIN: 40,
+    LIGHTNESS_PERCENT_ARBITRARY_MAX: 60,
+    LIGHTNESS_PERCENT_OVERALL_MIN: 0,
+    LIGHTNESS_PERCENT_OVERALL_MAX: 100,
+    BORDER_RADIUS_MAX: 22,
+    TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
+  };
+
+  const normalizeHsl = function normalizeHsl({ h, l }) {
+    const lScaled = MathUtil.scale(
+      l,
+      CONFIG.LIGHTNESS_PERCENT_OVERALL_MIN,
+      CONFIG.LIGHTNESS_PERCENT_OVERALL_MAX,
+      CONFIG.LIGHTNESS_PERCENT_ARBITRARY_MIN,
+      CONFIG.LIGHTNESS_PERCENT_ARBITRARY_MAX
+    );
+
+    return { h, s: CONFIG.SATURATION_PERCENT, l: lScaled };
+  };
+
+  const getRandomData = function getRandomData() {
+    const hslColor = ColorUtil.getRandomHslColor();
+    const { h, s, l } = normalizeHsl(hslColor);
+
+    const randomIndex = MathUtil.getRandomInt(
+      CONFIG.TEXT_TRANSFORM_OPTIONS.length
+    );
+    const transformValue = CONFIG.TEXT_TRANSFORM_OPTIONS[randomIndex];
+
+    const borderRadius = MathUtil.getRandomInt(CONFIG.BORDER_RADIUS_MAX);
+
+    return {
+      hue: h,
+      saturation: s,
+      value: l,
+      borderRadius,
+      labelTransform: transformValue,
+    };
+  };
+
+  const resetData = function resetData() {
+    const randomData = getRandomData();
+    hue = randomData.hue;
+    saturation = randomData.saturation;
+    value = randomData.value;
+    borderRadius = randomData.borderRadius;
+    labelTransform = randomData.labelTransform;
+  };
+
+  return {
+    init() {
+      resetData();
+      console.log('Data object initialized.');
+    },
+
+    getData() {
+      return {
+        hue,
+        saturation,
+        value,
+        borderRadius,
+        labelTransform,
+      };
+    },
+  };
+})();
+
 const App = (function buildApp() {
   let buttonEls;
   let buttonLabelEls;
 
-  const setRandomBackground = (function makeSetRandomBackground() {
-    function getRandomHsl() {
-      const SATURATION_PERCENT = 75;
-      const LIGHTNESS_PERCENT_ARBITRARY_MIN = 40;
-      const LIGHTNESS_PERCENT_ARBITRARY_MAX = 60;
-      const LIGHTNESS_PERCENT_OVERALL_MIN = 0;
-      const LIGHTNESS_PERCENT_OVERALL_MAX = 100;
-      const hexColor = ColorUtil.getRandomHexColor();
-      const { h, l } = ColorUtil.hexToHsl(hexColor);
-      const lScaled = MathUtil.scale(
-        l,
-        LIGHTNESS_PERCENT_OVERALL_MIN,
-        LIGHTNESS_PERCENT_OVERALL_MAX,
-        LIGHTNESS_PERCENT_ARBITRARY_MIN,
-        LIGHTNESS_PERCENT_ARBITRARY_MAX
-      );
-      const propValue = `hsl(${h}, ${SATURATION_PERCENT}%, ${lScaled}%)`;
+  function getHslPropValue({ hue, saturation, value }) {
+    return `hsl(${hue}, ${saturation}%, ${value}%)`;
+  }
 
-      return propValue;
-    }
+  function updateButtonView({
+    hue,
+    saturation,
+    value,
+    borderRadius,
+    labelTransform,
+  }) {
+    hslPropValue = getHslPropValue({ hue, saturation, value });
+    borderRadiusPropValue = `${borderRadius}px`;
 
-    return function setRandomBackground() {
-      const backgroundColorValue = getRandomHsl();
+    buttonEls.forEach((buttonEl) => {
+      buttonEl.style.backgroundColor = hslPropValue;
+      buttonEl.style.borderRadius = borderRadiusPropValue;
+    });
 
-      buttonEls.forEach((buttonEl) => {
-        buttonEl.style.backgroundColor = backgroundColorValue;
-      });
-    };
-  })();
-
-  const setRandomShape = (function makeSetRandomShape() {
-    const BORDER_RADIUS_MIN = 0;
-    const BORDER_RADIUS_MAX = 22; // Half of hardcoded CSS height
-    const getRandomRadius = function getRandomRadius() {
-      return MathUtil.getRandomInt(BORDER_RADIUS_MAX);
-    };
-
-    return function setRandomShape() {
-      const randomBorderRadius = getRandomRadius();
-
-      buttonEls.forEach((buttonEl) => {
-        buttonEl.style.borderRadius = `${randomBorderRadius}px`;
-      });
-    };
-  })();
-
-  const setRandomLabelTextTransform = (function makeSetRandomLabelTextTransform() {
-    const TEXT_TRANSFORM_OPTIONS = ['capitalize', 'uppercase', 'lowercase'];
-    const randomIndex = MathUtil.getRandomInt(TEXT_TRANSFORM_OPTIONS.length);
-    const transformValue = TEXT_TRANSFORM_OPTIONS[randomIndex];
-
-    return function setRandomLabelTextTransform() {
-      buttonLabelEls.forEach((labelEl) => {
-        labelEl.style.textTransform = transformValue;
-      });
-    };
-  })();
-
-  function setButtonToRandomValues() {
-    setRandomBackground();
-    setRandomShape();
-    setRandomLabelTextTransform();
+    buttonLabelEls.forEach((labelEl) => {
+      labelEl.style.textTransform = labelTransform;
+    });
   }
 
   function addEventListeners() {}
@@ -83,9 +119,10 @@ const App = (function buildApp() {
 
   return {
     async init() {
+      Data.init();
       setDomReferences();
       addEventListeners();
-      setButtonToRandomValues();
+      updateButtonView(Data.getData());
     },
   };
 })();

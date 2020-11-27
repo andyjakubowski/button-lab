@@ -40,6 +40,11 @@ const ColorUtil = (function buildColorUtil() {
       return this.rgbToHex(rgbColor);
     },
 
+    getRandomHslColor() {
+      const hexColor = this.getRandomHexColor();
+      return this.hexToHsl(hexColor);
+    },
+
     rgbToHex({ red, green, blue }) {
       const redHex = this.intToHex(red);
       const greenHex = this.intToHex(green);
