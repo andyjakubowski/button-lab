@@ -7,27 +7,23 @@ const Data = (function makeData() {
     SATURATION_PERCENT: 75,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
     ADJUSTMENTS: {
-      color: {
-        stateName: 'hue',
+      hue: {
         min: 0,
         max: 359,
         overallMin: 0,
         overallMax: 359,
       },
-      brightness: {
-        stateName: 'value',
+      value: {
         min: 40,
         max: 60,
         overallMin: 0,
         overallMax: 100,
       },
-      shape: {
-        stateName: 'borderRadius',
+      borderRadius: {
         min: 0,
         max: 22,
       },
-      label: {
-        stateName: 'labelTransform',
+      labelTransform: {
         options: ['capitalize', 'uppercase', 'lowercase'],
         min: 0,
         max: 2,
@@ -41,24 +37,23 @@ const Data = (function makeData() {
     value: null,
     borderRadius: null,
     labelTransform: null,
-    activeAdjustment: 'color',
+    activeAdjustment: 'hue',
   };
 
   const normalizeHsl = function normalizeHsl({ h, l }) {
     const lScaled = MathUtil.scale(
       l,
-      CONFIG.ADJUSTMENTS.brightness.overallMin,
-      CONFIG.ADJUSTMENTS.brightness.overallMax,
-      CONFIG.ADJUSTMENTS.brightness.min,
-      CONFIG.ADJUSTMENTS.brightness.max
+      CONFIG.ADJUSTMENTS.value.overallMin,
+      CONFIG.ADJUSTMENTS.value.overallMax,
+      CONFIG.ADJUSTMENTS.value.min,
+      CONFIG.ADJUSTMENTS.value.max
     );
 
     return { h, s: CONFIG.SATURATION_PERCENT, l: lScaled };
   };
 
   const getAdjustmentValue = function getAdjustmentValue(adjustmentName) {
-    const statePropName = CONFIG.ADJUSTMENTS[adjustmentName].stateName;
-    return state[statePropName];
+    return state[adjustmentName];
   };
 
   const getRandomData = function getRandomData() {
@@ -66,11 +61,12 @@ const Data = (function makeData() {
     const { h, s, l } = normalizeHsl(hslColor);
 
     const randomTransformIndex = MathUtil.getRandomInt(
-      CONFIG.ADJUSTMENTS.label.options.length
+      CONFIG.ADJUSTMENTS.labelTransform.options.length
     );
-    // const transformValue = CONFIG.ADJUSTMENTS.label.options[randomIndex];
 
-    const borderRadius = MathUtil.getRandomInt(CONFIG.ADJUSTMENTS.shape.max);
+    const borderRadius = MathUtil.getRandomInt(
+      CONFIG.ADJUSTMENTS.borderRadius.max
+    );
 
     return {
       hue: h,
@@ -93,7 +89,6 @@ const Data = (function makeData() {
   return {
     init() {
       resetData();
-      console.log('Data object initialized.');
     },
 
     getData() {
@@ -114,17 +109,42 @@ const Data = (function makeData() {
       });
     },
 
-    getScaledAdjustmentValue(adjustmentName, outMin = 0, outMax = 100) {
+    scaleAdjustmentValueToSlider(adjustmentName, sliderEl) {
       const val = getAdjustmentValue(adjustmentName);
       const inMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
       const inMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
+      const sliderMin = Number(sliderEl.min);
+      const sliderMax = Number(sliderEl.max);
       console.log(`val: ${val}, inMin: ${inMin}, inMax: ${inMax}`);
-      const valScaled = MathUtil.scale(val, inMin, inMax, outMin, outMax);
+      const valScaled = MathUtil.scale(val, inMin, inMax, sliderMin, sliderMax);
       return valScaled;
     },
 
+    scaleAdjustmentValueFromSlider(adjustmentName, sliderEl) {
+      const sliderVal = sliderEl.value;
+      const sliderMin = Number(sliderEl.min);
+      const sliderMax = Number(sliderEl.max);
+      const adjustmentMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
+      const adjustmentMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
+      const newVal = MathUtil.scale(
+        sliderVal,
+        sliderMin,
+        sliderMax,
+        adjustmentMin,
+        adjustmentMax
+      );
+      return newVal;
+    },
+
+    getAdjustmentRange(adjustmentName) {
+      return {
+        min: CONFIG.ADJUSTMENTS[adjustmentName].min,
+        max: CONFIG.ADJUSTMENTS[adjustmentName].max,
+      };
+    },
+
     getLabelTransformValue(index) {
-      return CONFIG.ADJUSTMENTS['label'].options[index];
+      return CONFIG.ADJUSTMENTS['labelTransform'].options[index];
     },
   };
 })();
@@ -169,7 +189,25 @@ const App = (function buildApp() {
 
   function handleAdjustmentListElClick(e) {
     Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
-    updateAdjustmentsView(Data.getData());
+    render();
+  }
+
+  function handleSliderElInput(e) {
+    const activeAdjustmentName = Data.getData().activeAdjustment;
+    const slider = e.currentTarget;
+    const valScaled = Data.scaleAdjustmentValueFromSlider(
+      activeAdjustmentName,
+      slider
+    );
+    Data.setData({ [activeAdjustmentName]: valScaled });
+    render();
+  }
+
+  function render() {
+    const dataObject = Data.getData();
+    updateButtonView(dataObject);
+    updateDebugView(dataObject);
+    updateAdjustmentsView(dataObject);
   }
 
   function updateAdjustmentsView({ activeAdjustment }) {
@@ -182,17 +220,22 @@ const App = (function buildApp() {
       }
     });
 
-    const adjustmentValScaled = Data.getScaledAdjustmentValue(activeAdjustment);
-    console.log(`adjustmentValScaled: ${adjustmentValScaled}`);
-    // const adjustmentValScaled = MathUtil.scale(adjustmentVal);
+    const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
+      activeAdjustment,
+      sliderEl
+    );
+
     sliderEl.value = adjustmentValScaled;
-    // scale(num, inMin, inMax, outMin, outMax)
+    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
+    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
   }
 
   function addEventListeners() {
     adjustmentListEls.forEach((adjustmentListEl) => {
       adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
     });
+
+    sliderEl.addEventListener('input', handleSliderElInput);
   }
 
   function setDomReferences() {
@@ -215,10 +258,7 @@ const App = (function buildApp() {
       Data.init();
       setDomReferences();
       addEventListeners();
-      const data = Data.getData();
-      updateButtonView(data);
-      updateDebugView(data);
-      updateAdjustmentsView(data);
+      render();
     },
 
     getSliderEl() {
