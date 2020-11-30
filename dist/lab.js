@@ -5,13 +5,34 @@ function handleDOMContentLoaded() {
 const Data = (function makeData() {
   const CONFIG = {
     SATURATION_PERCENT: 75,
-    LIGHTNESS_PERCENT_ARBITRARY_MIN: 40,
-    LIGHTNESS_PERCENT_ARBITRARY_MAX: 60,
-    LIGHTNESS_PERCENT_OVERALL_MIN: 0,
-    LIGHTNESS_PERCENT_OVERALL_MAX: 100,
-    BORDER_RADIUS_MAX: 22,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
-    ADJUSTMENT_NAMES: ['color', 'brightness', 'shape', 'label'],
+    ADJUSTMENTS: {
+      color: {
+        stateName: 'hue',
+        min: 0,
+        max: 359,
+        overallMin: 0,
+        overallMax: 359,
+      },
+      brightness: {
+        stateName: 'value',
+        min: 40,
+        max: 60,
+        overallMin: 0,
+        overallMax: 100,
+      },
+      shape: {
+        stateName: 'borderRadius',
+        min: 0,
+        max: 22,
+      },
+      label: {
+        stateName: 'labelTransform',
+        options: ['capitalize', 'uppercase', 'lowercase'],
+        min: 0,
+        max: 2,
+      },
+    },
   };
 
   let state = {
@@ -20,38 +41,43 @@ const Data = (function makeData() {
     value: null,
     borderRadius: null,
     labelTransform: null,
-    activeAdjustment: CONFIG.ADJUSTMENT_NAMES[0],
+    activeAdjustment: 'color',
   };
 
   const normalizeHsl = function normalizeHsl({ h, l }) {
     const lScaled = MathUtil.scale(
       l,
-      CONFIG.LIGHTNESS_PERCENT_OVERALL_MIN,
-      CONFIG.LIGHTNESS_PERCENT_OVERALL_MAX,
-      CONFIG.LIGHTNESS_PERCENT_ARBITRARY_MIN,
-      CONFIG.LIGHTNESS_PERCENT_ARBITRARY_MAX
+      CONFIG.ADJUSTMENTS.brightness.overallMin,
+      CONFIG.ADJUSTMENTS.brightness.overallMax,
+      CONFIG.ADJUSTMENTS.brightness.min,
+      CONFIG.ADJUSTMENTS.brightness.max
     );
 
     return { h, s: CONFIG.SATURATION_PERCENT, l: lScaled };
+  };
+
+  const getAdjustmentValue = function getAdjustmentValue(adjustmentName) {
+    const statePropName = CONFIG.ADJUSTMENTS[adjustmentName].stateName;
+    return state[statePropName];
   };
 
   const getRandomData = function getRandomData() {
     const hslColor = ColorUtil.getRandomHslColor();
     const { h, s, l } = normalizeHsl(hslColor);
 
-    const randomIndex = MathUtil.getRandomInt(
-      CONFIG.TEXT_TRANSFORM_OPTIONS.length
+    const randomTransformIndex = MathUtil.getRandomInt(
+      CONFIG.ADJUSTMENTS.label.options.length
     );
-    const transformValue = CONFIG.TEXT_TRANSFORM_OPTIONS[randomIndex];
+    // const transformValue = CONFIG.ADJUSTMENTS.label.options[randomIndex];
 
-    const borderRadius = MathUtil.getRandomInt(CONFIG.BORDER_RADIUS_MAX);
+    const borderRadius = MathUtil.getRandomInt(CONFIG.ADJUSTMENTS.shape.max);
 
     return {
       hue: h,
       saturation: s,
       value: l,
       borderRadius,
-      labelTransform: transformValue,
+      labelTransform: randomTransformIndex,
     };
   };
 
@@ -87,6 +113,19 @@ const Data = (function makeData() {
         state[name] = newDataObj[name];
       });
     },
+
+    getScaledAdjustmentValue(adjustmentName, outMin = 0, outMax = 100) {
+      const val = getAdjustmentValue(adjustmentName);
+      const inMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
+      const inMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
+      console.log(`val: ${val}, inMin: ${inMin}, inMax: ${inMax}`);
+      const valScaled = MathUtil.scale(val, inMin, inMax, outMin, outMax);
+      return valScaled;
+    },
+
+    getLabelTransformValue(index) {
+      return CONFIG.ADJUSTMENTS['label'].options[index];
+    },
   };
 })();
 
@@ -95,6 +134,7 @@ const App = (function buildApp() {
   let buttonLabelEls;
   let debugPreEl;
   let adjustmentListEls;
+  let sliderEl;
 
   function getHslPropValue({ hue, saturation, value }) {
     return `hsl(${hue}, ${saturation}%, ${value}%)`;
@@ -116,7 +156,7 @@ const App = (function buildApp() {
     });
 
     buttonLabelEls.forEach((labelEl) => {
-      labelEl.style.textTransform = labelTransform;
+      labelEl.style.textTransform = Data.getLabelTransformValue(labelTransform);
     });
   }
 
@@ -141,6 +181,12 @@ const App = (function buildApp() {
         adjustmentListEl.classList.remove(activeAdjustmentClassName);
       }
     });
+
+    const adjustmentValScaled = Data.getScaledAdjustmentValue(activeAdjustment);
+    console.log(`adjustmentValScaled: ${adjustmentValScaled}`);
+    // const adjustmentValScaled = MathUtil.scale(adjustmentVal);
+    sliderEl.value = adjustmentValScaled;
+    // scale(num, inMin, inMax, outMin, outMax)
   }
 
   function addEventListeners() {
@@ -161,6 +207,7 @@ const App = (function buildApp() {
     adjustmentListEls = [...adjustmentListElsHTMLCollection];
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
+    sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
   }
 
   return {
@@ -172,6 +219,10 @@ const App = (function buildApp() {
       updateButtonView(data);
       updateDebugView(data);
       updateAdjustmentsView(data);
+    },
+
+    getSliderEl() {
+      return sliderEl;
     },
   };
 })();
