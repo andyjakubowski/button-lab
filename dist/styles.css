@@ -67,6 +67,14 @@ main {
   margin-inline-start: 1em;
 }
 
+.button:hover {
+  cursor: pointer;
+}
+
+.button_disabled:hover {
+  cursor: default;
+}
+
 .adjustments {
   /* background-color: gainsboro; */
 }
@@ -156,10 +164,11 @@ main {
 
 .debug-container {
   position: absolute;
+  pointer-events: none;
 }
 
 .debug-content {
-  opacity: 0.5;
+  opacity: 0.2;
   font-size: 10px;
 }
 

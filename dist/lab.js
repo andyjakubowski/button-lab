@@ -22,11 +22,15 @@ const Data = (function makeData() {
       borderRadius: {
         min: 0,
         max: 22,
+        overallMin: 0,
+        overallMax: 1000,
       },
       labelTransform: {
         options: ['capitalize', 'uppercase', 'lowercase'],
         min: 0,
         max: 2,
+        overallMin: 0,
+        overallMax: 2,
       },
     },
   };
@@ -115,7 +119,6 @@ const Data = (function makeData() {
       const inMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
       const sliderMin = Number(sliderEl.min);
       const sliderMax = Number(sliderEl.max);
-      console.log(`val: ${val}, inMin: ${inMin}, inMax: ${inMax}`);
       const valScaled = MathUtil.scale(val, inMin, inMax, sliderMin, sliderMax);
       return valScaled;
     },
@@ -137,9 +140,12 @@ const Data = (function makeData() {
     },
 
     getAdjustmentRange(adjustmentName) {
+      const range = CONFIG.ADJUSTMENTS[adjustmentName];
       return {
-        min: CONFIG.ADJUSTMENTS[adjustmentName].min,
-        max: CONFIG.ADJUSTMENTS[adjustmentName].max,
+        min: range.min,
+        max: range.max,
+        overallMin: range.overallMin,
+        overallMax: range.overallMax,
       };
     },
 
@@ -155,29 +161,105 @@ const App = (function buildApp() {
   let debugPreEl;
   let adjustmentListEls;
   let sliderEl;
+  let styleEl;
 
   function getHslPropValue({ hue, saturation, value }) {
     return `hsl(${hue}, ${saturation}%, ${value}%)`;
   }
 
-  function updateButtonView({
+  function render() {
+    const data = Data.getData();
+    const stylesObject = getButtonStyles(data);
+    setButtonStyles(stylesObject);
+    updateDebugView(data);
+    updateAdjustmentsView(data);
+  }
+
+  function getButtonStyles({
     hue,
     saturation,
     value,
     borderRadius,
     labelTransform,
   }) {
-    hslPropValue = getHslPropValue({ hue, saturation, value });
-    borderRadiusPropValue = `${borderRadius}px`;
+    const backgroundColorValueIdle = getHslPropValue({
+      hue,
+      saturation,
+      value,
+    });
+    const backgroundColorValueHover = getHslPropValue({
+      hue,
+      saturation,
+      value: value + 10,
+    });
+    const backgroundColorValueDisabled = getHslPropValue({
+      hue,
+      saturation: 5,
+      value,
+    });
+    const borderRadiusValue = `${borderRadius}px`;
+    const textTransformValue = Data.getLabelTransformValue(labelTransform);
 
-    buttonEls.forEach((buttonEl) => {
-      buttonEl.style.backgroundColor = hslPropValue;
-      buttonEl.style.borderRadius = borderRadiusPropValue;
+    return {
+      shared: {
+        'border-radius': borderRadiusValue,
+        'text-transform': textTransformValue,
+      },
+      idle: {
+        'background-color': backgroundColorValueIdle,
+      },
+      hover: {
+        'background-color': backgroundColorValueHover,
+      },
+      disabled: {
+        'background-color': backgroundColorValueDisabled,
+      },
+    };
+  }
+
+  function setButtonStyles(styles) {
+    styleEl.innerHTML = `
+      .button__label {
+        text-transform: ${styles.shared['text-transform']};
+      }
+
+      .button {
+        border-radius: ${styles.shared['border-radius']};
+      }
+
+      .button_idle {
+        background-color: ${styles.idle['background-color']};
+      }
+
+      .button_hover,
+      .button_idle:hover {
+        background-color: ${styles.hover['background-color']};
+      }
+
+      .button_disabled {
+        background-color: ${styles.disabled['background-color']};
+      }
+    `;
+  }
+
+  function updateAdjustmentsView({ activeAdjustment }) {
+    const activeAdjustmentClassName = 'adjustments__list-item_active';
+    adjustmentListEls.forEach((adjustmentListEl) => {
+      if (adjustmentListEl.dataset.id == activeAdjustment) {
+        adjustmentListEl.classList.add(activeAdjustmentClassName);
+      } else {
+        adjustmentListEl.classList.remove(activeAdjustmentClassName);
+      }
     });
 
-    buttonLabelEls.forEach((labelEl) => {
-      labelEl.style.textTransform = Data.getLabelTransformValue(labelTransform);
-    });
+    const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
+      activeAdjustment,
+      sliderEl
+    );
+
+    sliderEl.value = adjustmentValScaled;
+    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
+    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
   }
 
   function updateDebugView(dataObj) {
@@ -203,33 +285,6 @@ const App = (function buildApp() {
     render();
   }
 
-  function render() {
-    const dataObject = Data.getData();
-    updateButtonView(dataObject);
-    updateDebugView(dataObject);
-    updateAdjustmentsView(dataObject);
-  }
-
-  function updateAdjustmentsView({ activeAdjustment }) {
-    const activeAdjustmentClassName = 'adjustments__list-item_active';
-    adjustmentListEls.forEach((adjustmentListEl) => {
-      if (adjustmentListEl.dataset.id == activeAdjustment) {
-        adjustmentListEl.classList.add(activeAdjustmentClassName);
-      } else {
-        adjustmentListEl.classList.remove(activeAdjustmentClassName);
-      }
-    });
-
-    const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
-      activeAdjustment,
-      sliderEl
-    );
-
-    sliderEl.value = adjustmentValScaled;
-    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
-    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
-  }
-
   function addEventListeners() {
     adjustmentListEls.forEach((adjustmentListEl) => {
       adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
@@ -251,6 +306,7 @@ const App = (function buildApp() {
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
     sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
+    styleEl = document.getElementsByClassName('dynamic-styles').item(0);
   }
 
   return {
