@@ -161,6 +161,11 @@ const App = (function buildApp() {
   let sliderEl;
   let styleEl;
 
+  function setVh() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+
   function getHslPropValue({ hue, saturation, value }) {
     return `hsl(${hue}, ${saturation}%, ${value}%)`;
   }
@@ -250,14 +255,15 @@ const App = (function buildApp() {
       }
     });
 
+    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
+    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
+
     const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
       activeAdjustment,
       sliderEl
     );
 
     sliderEl.value = adjustmentValScaled;
-    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
-    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
   }
 
   function updateDebugView(dataObj) {
@@ -298,6 +304,9 @@ const App = (function buildApp() {
       .getElementsByClassName('footer__link-debug')
       .item(0);
     debugLink.addEventListener('click', handleDebugLinkClick);
+
+    window.addEventListener('load', setVh);
+    window.addEventListener('resize', setVh);
   }
 
   function setDomReferences() {
