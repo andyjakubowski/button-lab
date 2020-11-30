@@ -14,12 +14,14 @@ const Data = (function makeData() {
     ADJUSTMENT_NAMES: ['color', 'brightness', 'shape', 'label'],
   };
 
-  let hue;
-  let saturation;
-  let value;
-  let borderRadius;
-  let labelTransform;
-  let activeAdjustment = CONFIG.ADJUSTMENT_NAMES[0];
+  let state = {
+    hue: null,
+    saturation: null,
+    value: null,
+    borderRadius: null,
+    labelTransform: null,
+    activeAdjustment: CONFIG.ADJUSTMENT_NAMES[0],
+  };
 
   const normalizeHsl = function normalizeHsl({ h, l }) {
     const lScaled = MathUtil.scale(
@@ -55,11 +57,11 @@ const Data = (function makeData() {
 
   const resetData = function resetData() {
     const randomData = getRandomData();
-    hue = randomData.hue;
-    saturation = randomData.saturation;
-    value = randomData.value;
-    borderRadius = randomData.borderRadius;
-    labelTransform = randomData.labelTransform;
+    state.hue = randomData.hue;
+    state.saturation = randomData.saturation;
+    state.value = randomData.value;
+    state.borderRadius = randomData.borderRadius;
+    state.labelTransform = randomData.labelTransform;
   };
 
   return {
@@ -70,13 +72,20 @@ const Data = (function makeData() {
 
     getData() {
       return {
-        hue,
-        saturation,
-        value,
-        borderRadius,
-        labelTransform,
-        activeAdjustment,
+        hue: state.hue,
+        saturation: state.saturation,
+        value: state.value,
+        borderRadius: state.borderRadius,
+        labelTransform: state.labelTransform,
+        activeAdjustment: state.activeAdjustment,
       };
+    },
+
+    setData(newDataObj) {
+      const propNames = Object.getOwnPropertyNames(newDataObj);
+      propNames.forEach((name) => {
+        state[name] = newDataObj[name];
+      });
     },
   };
 })();
@@ -118,6 +127,11 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
+  function handleAdjustmentListElClick(e) {
+    Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
+    updateAdjustmentsView(Data.getData());
+  }
+
   function updateAdjustmentsView({ activeAdjustment }) {
     const activeAdjustmentClassName = 'adjustments__list-item_active';
     adjustmentListEls.forEach((adjustmentListEl) => {
@@ -129,7 +143,11 @@ const App = (function buildApp() {
     });
   }
 
-  function addEventListeners() {}
+  function addEventListeners() {
+    adjustmentListEls.forEach((adjustmentListEl) => {
+      adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
+    });
+  }
 
   function setDomReferences() {
     const buttonElsHTMLCollection = document.getElementsByClassName('button');
