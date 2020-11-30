@@ -41,8 +41,8 @@ const ColorUtil = (function buildColorUtil() {
     },
 
     getRandomHslColor() {
-      const hexColor = this.getRandomHexColor();
-      return this.hexToHsl(hexColor);
+      const rgbColor = this.getRandomRGBColor();
+      return this.rgbToHsl(rgbColor);
     },
 
     rgbToHex({ red, green, blue }) {
@@ -71,11 +71,6 @@ const ColorUtil = (function buildColorUtil() {
       const blueInt = Number.parseInt(blueHexStr, 16);
 
       return { red: redInt, green: greenInt, blue: blueInt };
-    },
-
-    hexToHsl(hexColor) {
-      const rgbColor = this.hexToRgb(hexColor);
-      return this.rgbToHsl(rgbColor);
     },
 
     rgbToHsl({ red: r, green: g, blue: b }) {
