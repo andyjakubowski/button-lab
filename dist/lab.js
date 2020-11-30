@@ -81,6 +81,7 @@ const Data = (function makeData() {
 const App = (function buildApp() {
   let buttonEls;
   let buttonLabelEls;
+  let debugPreEl;
 
   function getHslPropValue({ hue, saturation, value }) {
     return `hsl(${hue}, ${saturation}%, ${value}%)`;
@@ -106,6 +107,13 @@ const App = (function buildApp() {
     });
   }
 
+  function updateDebugView(dataObj) {
+    const propNames = Object.getOwnPropertyNames(dataObj);
+    const strings = propNames.map((name) => `${name}\n${dataObj[name]}\n`);
+    const contentStr = strings.join('\n');
+    debugPreEl.textContent = contentStr;
+  }
+
   function addEventListeners() {}
 
   function setDomReferences() {
@@ -114,6 +122,7 @@ const App = (function buildApp() {
     const buttonLabelElsHTMLCollection = document.getElementsByClassName(
       'button__label'
     );
+    debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
   }
 
@@ -122,7 +131,10 @@ const App = (function buildApp() {
       Data.init();
       setDomReferences();
       addEventListeners();
-      updateButtonView(Data.getData());
+
+      const data = Data.getData();
+      updateButtonView(data);
+      updateDebugView(data);
     },
   };
 })();
