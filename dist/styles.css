@@ -95,6 +95,10 @@ main {
   margin-inline-start: 4px;
 }
 
+.adjustments__list-item_active {
+  background-color: #bbb;
+}
+
 .adjustments__button {
   padding: 4px 8px;
   border-radius: 16px;
@@ -106,6 +110,11 @@ main {
   font-size: 10px;
   font-weight: bolder;
   text-transform: uppercase;
+}
+
+.adjustments__button_active {
+  background-color: #999;
+  color: #eee;
 }
 
 .adjustments__slider-container {

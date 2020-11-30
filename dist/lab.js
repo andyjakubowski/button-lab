@@ -3,12 +3,6 @@ function handleDOMContentLoaded() {
 }
 
 const Data = (function makeData() {
-  let hue;
-  let saturation;
-  let value;
-  let borderRadius;
-  let labelTransform;
-
   const CONFIG = {
     SATURATION_PERCENT: 75,
     LIGHTNESS_PERCENT_ARBITRARY_MIN: 40,
@@ -17,7 +11,15 @@ const Data = (function makeData() {
     LIGHTNESS_PERCENT_OVERALL_MAX: 100,
     BORDER_RADIUS_MAX: 22,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
+    ADJUSTMENT_NAMES: ['color', 'brightness', 'shape', 'label'],
   };
+
+  let hue;
+  let saturation;
+  let value;
+  let borderRadius;
+  let labelTransform;
+  let activeAdjustment = CONFIG.ADJUSTMENT_NAMES[0];
 
   const normalizeHsl = function normalizeHsl({ h, l }) {
     const lScaled = MathUtil.scale(
@@ -73,6 +75,7 @@ const Data = (function makeData() {
         value,
         borderRadius,
         labelTransform,
+        activeAdjustment,
       };
     },
   };
@@ -82,6 +85,7 @@ const App = (function buildApp() {
   let buttonEls;
   let buttonLabelEls;
   let debugPreEl;
+  let adjustmentListEls;
 
   function getHslPropValue({ hue, saturation, value }) {
     return `hsl(${hue}, ${saturation}%, ${value}%)`;
@@ -114,14 +118,29 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
+  function updateAdjustmentsView({ activeAdjustment }) {
+    const activeAdjustmentClassName = 'adjustments__list-item_active';
+    adjustmentListEls.forEach((adjustmentListEl) => {
+      if (adjustmentListEl.dataset.id == activeAdjustment) {
+        adjustmentListEl.classList.add(activeAdjustmentClassName);
+      } else {
+        adjustmentListEl.classList.remove(activeAdjustmentClassName);
+      }
+    });
+  }
+
   function addEventListeners() {}
 
   function setDomReferences() {
     const buttonElsHTMLCollection = document.getElementsByClassName('button');
-    buttonEls = [...buttonElsHTMLCollection];
     const buttonLabelElsHTMLCollection = document.getElementsByClassName(
       'button__label'
     );
+    const adjustmentListElsHTMLCollection = document.getElementsByClassName(
+      'adjustments__list-item'
+    );
+    buttonEls = [...buttonElsHTMLCollection];
+    adjustmentListEls = [...adjustmentListElsHTMLCollection];
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
   }
@@ -131,10 +150,10 @@ const App = (function buildApp() {
       Data.init();
       setDomReferences();
       addEventListeners();
-
       const data = Data.getData();
       updateButtonView(data);
       updateDebugView(data);
+      updateAdjustmentsView(data);
     },
   };
 })();
