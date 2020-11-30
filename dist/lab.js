@@ -156,8 +156,6 @@ const Data = (function makeData() {
 })();
 
 const App = (function buildApp() {
-  let buttonEls;
-  let buttonLabelEls;
   let debugPreEl;
   let adjustmentListEls;
   let sliderEl;
@@ -285,12 +283,21 @@ const App = (function buildApp() {
     render();
   }
 
+  function handleDebugLinkClick() {
+    debugPreEl.classList.toggle('debug-pre_off');
+  }
+
   function addEventListeners() {
     adjustmentListEls.forEach((adjustmentListEl) => {
       adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
     });
 
     sliderEl.addEventListener('input', handleSliderElInput);
+
+    const debugLink = document
+      .getElementsByClassName('footer__link-debug')
+      .item(0);
+    debugLink.addEventListener('click', handleDebugLinkClick);
   }
 
   function setDomReferences() {

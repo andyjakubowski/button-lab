@@ -154,12 +154,8 @@ main {
 .footer__link {
   padding: 1em;
 
-  display: block;
-}
-
-.footer__link-github,
-.footer__link-twitter {
   text-decoration: none;
+  display: block;
 }
 
 .debug-container {
@@ -167,9 +163,13 @@ main {
   pointer-events: none;
 }
 
-.debug-content {
+.debug-pre {
   opacity: 0.2;
   font-size: 10px;
+}
+
+.debug-pre_off {
+  opacity: 0;
 }
 
 /* Positioning */
