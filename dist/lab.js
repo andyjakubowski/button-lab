@@ -251,7 +251,14 @@ const App = (function buildApp() {
     `;
   }
 
-  function updateAdjustmentsView({ activeAdjustment }) {
+  function updateAdjustmentsView({
+    activeAdjustment,
+    hue,
+    saturation,
+    value,
+    borderRadius,
+    labelTransform,
+  }) {
     const activeAdjustmentClassName = 'adjustments__list-item_active';
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
       if (adjustmentNameListEl.dataset.id == activeAdjustment) {
@@ -267,34 +274,56 @@ const App = (function buildApp() {
     });
 
     const optionElList = adjustmentOptionsElLists[activeAdjustment];
+
+    const valueMin = Data.getAdjustmentRange('value').min;
+    let optionHue = hue;
+    let optionSaturation = saturation;
+    let optionValue = value;
+    let optionBorderRadius = borderRadius;
+    let optionLabelTransform = labelTransform;
+
+    optionElList.forEach((optionEl, optionIndex) => {
+      switch (activeAdjustment) {
+        case 'hue':
+          optionHue = optionIndex;
+          break;
+        case 'value':
+          optionValue = valueMin + optionIndex;
+          break;
+        case 'borderRadius':
+          optionBorderRadius = optionIndex;
+          break;
+        case 'labelTransform':
+          optionLabelTransform = optionIndex;
+          break;
+        default:
+          console.warn(
+            `The adjustment “${activeAdjustment}” doesn't seem supported yet.`
+          );
+      }
+
+      const backgroundColorValueIdle = getHslPropValue({
+        hue: optionHue,
+        saturation: optionSaturation,
+        value: optionValue,
+      });
+      const borderRadiusValue = `${optionBorderRadius}px`;
+      const textTransformValue = Data.getLabelTransformValue(
+        optionLabelTransform
+      );
+
+      optionEl.style.backgroundColor = backgroundColorValueIdle;
+      optionEl.style.borderRadius = borderRadiusValue;
+
+      const labelEl = optionEl.children[0];
+      labelEl.style.textTransform = textTransformValue;
+    });
+
     adjustmentOptionsContainerEl.append(...optionElList);
-
-    // sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
-    // sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
-
-    // const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
-    //   activeAdjustment,
-    //   sliderEl
-    // );
-
-    // sliderEl.value = adjustmentValScaled;
   }
 
   function createAdjustmentOptionEls(adjustmentNames) {
-    const {
-      hue,
-      saturation,
-      value,
-      borderRadius,
-      labelTransform,
-    } = Data.getData();
-
     adjustmentNames.forEach((name) => {
-      // if (name !== 'hue') {
-      //   return;
-      // }
-
-      console.log(`\nProcessing: ${name}`);
       const elements = [];
       const { min, max } = Data.getAdjustmentRange(name);
 
@@ -319,7 +348,7 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
-  function handleadjustmentNameListElClick(e) {
+  function handleAdjustmentNameListElClick(e) {
     Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
     render();
   }
@@ -343,11 +372,9 @@ const App = (function buildApp() {
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
       adjustmentNameListEl.addEventListener(
         'click',
-        handleadjustmentNameListElClick
+        handleAdjustmentNameListElClick
       );
     });
-
-    // sliderEl.addEventListener('input', handleSliderElInput);
 
     const debugLink = document
       .getElementsByClassName('footer__link-debug')
@@ -370,7 +397,6 @@ const App = (function buildApp() {
     adjustmentNameListEls = [...adjustmentNameListElsHTMLCollection];
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
-    // sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
     styleEl = document.getElementsByClassName('dynamic-styles').item(0);
     adjustmentOptionsContainerEl = document
       .getElementsByClassName('adjustments__options-container')
@@ -384,14 +410,6 @@ const App = (function buildApp() {
       addEventListeners();
       createAdjustmentOptionEls(Data.getAdjustmentNames());
       render();
-    },
-
-    getSliderEl() {
-      return sliderEl;
-    },
-
-    getAdjustmentOptionsElLists() {
-      return adjustmentOptionsElLists;
     },
   };
 })();
