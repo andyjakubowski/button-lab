@@ -52,12 +52,9 @@ const Data = (function makeData() {
       CONFIG.ADJUSTMENTS.value.min,
       CONFIG.ADJUSTMENTS.value.max
     );
+    const lScaledInt = Math.floor(lScaled);
 
-    return { h, s: CONFIG.SATURATION_PERCENT, l: lScaled };
-  };
-
-  const getAdjustmentValue = function getAdjustmentValue(adjustmentName) {
-    return state[adjustmentName];
+    return { h, s: CONFIG.SATURATION_PERCENT, l: lScaledInt };
   };
 
   const getRandomData = function getRandomData() {
@@ -224,15 +221,19 @@ const App = (function buildApp() {
     `;
   }
 
-  function updateAdjustmentsView({
-    activeAdjustment,
-    hue,
-    saturation,
-    value,
-    borderRadius,
-    labelTransform,
-  }) {
+  function updateAdjustmentsView(data) {
+    const {
+      activeAdjustment,
+      hue,
+      saturation,
+      value,
+      borderRadius,
+      labelTransform,
+    } = data;
     const activeAdjustmentClassName = 'adjustments__list-item_active';
+    const activeOptionBoxClassName = 'adjustments__option-box_active';
+    const activeAdjustmentValue = data[activeAdjustment];
+
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
       if (adjustmentNameListEl.dataset.id == activeAdjustment) {
         adjustmentNameListEl.classList.add(activeAdjustmentClassName);
@@ -248,26 +249,32 @@ const App = (function buildApp() {
 
     const optionElList = adjustmentOptionsElLists[activeAdjustment];
 
-    const valueMin = Data.getAdjustmentRange('value').min;
     let optionHue = hue;
     let optionSaturation = saturation;
-    let optionValue = value;
+    let optionColorValue = value;
     let optionBorderRadius = borderRadius;
     let optionLabelTransform = labelTransform;
 
-    optionElList.forEach((optionEl, optionIndex) => {
+    optionElList.forEach((optionEl) => {
+      const optionDataValue = Number(optionEl.dataset.value);
+      if (optionDataValue === activeAdjustmentValue) {
+        optionEl.classList.add(activeOptionBoxClassName);
+      } else {
+        optionEl.classList.remove(activeOptionBoxClassName);
+      }
+
       switch (activeAdjustment) {
         case 'hue':
-          optionHue = optionIndex;
+          optionHue = optionDataValue;
           break;
         case 'value':
-          optionValue = valueMin + optionIndex;
+          optionColorValue = optionDataValue;
           break;
         case 'borderRadius':
-          optionBorderRadius = optionIndex;
+          optionBorderRadius = optionDataValue;
           break;
         case 'labelTransform':
-          optionLabelTransform = optionIndex;
+          optionLabelTransform = optionDataValue;
           break;
         default:
           console.warn(
@@ -278,17 +285,19 @@ const App = (function buildApp() {
       const backgroundColorValueIdle = getHslPropValue({
         hue: optionHue,
         saturation: optionSaturation,
-        value: optionValue,
+        value: optionColorValue,
       });
       const borderRadiusValue = `${optionBorderRadius}px`;
       const textTransformValue = Data.getLabelTransformValue(
         optionLabelTransform
       );
 
-      optionEl.style.backgroundColor = backgroundColorValueIdle;
-      optionEl.style.borderRadius = borderRadiusValue;
+      const buttonEl = optionEl.querySelector('.button');
 
-      const labelEl = optionEl.children[0];
+      buttonEl.style.backgroundColor = backgroundColorValueIdle;
+      buttonEl.style.borderRadius = borderRadiusValue;
+
+      const labelEl = buttonEl.children[0];
       labelEl.style.textTransform = textTransformValue;
     });
 
@@ -301,14 +310,17 @@ const App = (function buildApp() {
       const { min, max } = Data.getAdjustmentRange(name);
 
       for (let i = min; i <= max; i += 1) {
+        const optionBoxEl = document.createElement('div');
         const buttonEl = document.createElement('div');
         const labelEl = document.createElement('span');
+        optionBoxEl.classList.add('adjustments__option-box');
+        optionBoxEl.dataset.value = i;
         buttonEl.classList.add('button', 'button_idle');
-        buttonEl.dataset.value = i;
         labelEl.classList.add('button__label');
         labelEl.textContent = 'Send';
+        optionBoxEl.append(buttonEl);
         buttonEl.append(labelEl);
-        elements.push(buttonEl);
+        elements.push(optionBoxEl);
       }
 
       adjustmentOptionsElLists[name] = elements;
@@ -328,13 +340,13 @@ const App = (function buildApp() {
   }
 
   function handleAdjustmentOptionsContainerElClick(e) {
-    const closestButtonEl = e.target.closest('.button');
+    const closestOptionEl = e.target.closest('.adjustments__option-box');
 
-    if (!closestButtonEl) {
+    if (!closestOptionEl) {
       return;
     }
 
-    const value = Number(closestButtonEl.dataset.value);
+    const value = Number(closestOptionEl.dataset.value);
     const activeAdjustmentName = Data.getData().activeAdjustment;
     Data.setData({ [activeAdjustmentName]: value });
     render();

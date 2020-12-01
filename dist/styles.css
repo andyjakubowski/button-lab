@@ -133,11 +133,36 @@ main {
 }
 
 .adjustments__options-container {
+  margin: 0 auto;
+  max-width: 600px;
   display: flex;
   flex-grow: 1;
   flex-wrap: wrap;
   align-content: flex-start;
   overflow: scroll;
+
+  justify-content: center;
+}
+
+.adjustments__option-box {
+  box-sizing: border-box;
+  margin: 8px;
+  padding: 16px;
+  border-radius: 13px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border: 4px solid black;
+
+  background-color: #1f1f1f;
+
+  cursor: pointer;
+}
+
+.adjustments__option-box_active {
+  border: 4px solid #aaa;
 }
 
 .footer {
