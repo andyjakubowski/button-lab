@@ -331,6 +331,7 @@ const App = (function buildApp() {
         const buttonEl = document.createElement('div');
         const labelEl = document.createElement('span');
         buttonEl.classList.add('button', 'button_idle');
+        buttonEl.dataset.value = i;
         labelEl.classList.add('button__label');
         labelEl.textContent = 'Send';
         buttonEl.append(labelEl);
@@ -353,14 +354,16 @@ const App = (function buildApp() {
     render();
   }
 
-  function handleSliderElInput(e) {
+  function handleAdjustmentOptionsContainerElClick(e) {
+    const closestButtonEl = e.target.closest('.button');
+
+    if (!closestButtonEl) {
+      return;
+    }
+
+    const value = Number(closestButtonEl.dataset.value);
     const activeAdjustmentName = Data.getData().activeAdjustment;
-    const slider = e.currentTarget;
-    const valScaled = Data.scaleAdjustmentValueFromSlider(
-      activeAdjustmentName,
-      slider
-    );
-    Data.setData({ [activeAdjustmentName]: valScaled });
+    Data.setData({ [activeAdjustmentName]: value });
     render();
   }
 
@@ -383,6 +386,11 @@ const App = (function buildApp() {
 
     window.addEventListener('load', setVh);
     window.addEventListener('resize', setVh);
+
+    adjustmentOptionsContainerEl.addEventListener(
+      'click',
+      handleAdjustmentOptionsContainerElClick
+    );
   }
 
   function setDomReferences() {
@@ -407,8 +415,8 @@ const App = (function buildApp() {
     async init() {
       Data.init();
       setDomReferences();
-      addEventListeners();
       createAdjustmentOptionEls(Data.getAdjustmentNames());
+      addEventListeners();
       render();
     },
   };
