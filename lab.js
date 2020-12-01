@@ -52,12 +52,9 @@ const Data = (function makeData() {
       CONFIG.ADJUSTMENTS.value.min,
       CONFIG.ADJUSTMENTS.value.max
     );
+    const lScaledInt = Math.floor(lScaled);
 
-    return { h, s: CONFIG.SATURATION_PERCENT, l: lScaled };
-  };
-
-  const getAdjustmentValue = function getAdjustmentValue(adjustmentName) {
-    return state[adjustmentName];
+    return { h, s: CONFIG.SATURATION_PERCENT, l: lScaledInt };
   };
 
   const getRandomData = function getRandomData() {
@@ -113,32 +110,6 @@ const Data = (function makeData() {
       });
     },
 
-    scaleAdjustmentValueToSlider(adjustmentName, sliderEl) {
-      const val = getAdjustmentValue(adjustmentName);
-      const inMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
-      const inMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
-      const sliderMin = Number(sliderEl.min);
-      const sliderMax = Number(sliderEl.max);
-      const valScaled = MathUtil.scale(val, inMin, inMax, sliderMin, sliderMax);
-      return valScaled;
-    },
-
-    scaleAdjustmentValueFromSlider(adjustmentName, sliderEl) {
-      const sliderVal = sliderEl.value;
-      const sliderMin = Number(sliderEl.min);
-      const sliderMax = Number(sliderEl.max);
-      const adjustmentMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
-      const adjustmentMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
-      const newVal = MathUtil.scale(
-        sliderVal,
-        sliderMin,
-        sliderMax,
-        adjustmentMin,
-        adjustmentMax
-      );
-      return newVal;
-    },
-
     getAdjustmentRange(adjustmentName) {
       const range = CONFIG.ADJUSTMENTS[adjustmentName];
       return {
@@ -149,6 +120,10 @@ const Data = (function makeData() {
       };
     },
 
+    getAdjustmentNames() {
+      return Object.getOwnPropertyNames(CONFIG.ADJUSTMENTS);
+    },
+
     getLabelTransformValue(index) {
       return CONFIG.ADJUSTMENTS['labelTransform'].options[index];
     },
@@ -156,9 +131,10 @@ const Data = (function makeData() {
 })();
 
 const App = (function buildApp() {
+  const adjustmentOptionsElLists = {};
   let debugPreEl;
-  let adjustmentListEls;
-  let sliderEl;
+  let adjustmentNameListEls;
+  let adjustmentOptionsContainerEl;
   let styleEl;
 
   function setVh() {
@@ -245,25 +221,110 @@ const App = (function buildApp() {
     `;
   }
 
-  function updateAdjustmentsView({ activeAdjustment }) {
+  function updateAdjustmentsView(data) {
+    const {
+      activeAdjustment,
+      hue,
+      saturation,
+      value,
+      borderRadius,
+      labelTransform,
+    } = data;
     const activeAdjustmentClassName = 'adjustments__list-item_active';
-    adjustmentListEls.forEach((adjustmentListEl) => {
-      if (adjustmentListEl.dataset.id == activeAdjustment) {
-        adjustmentListEl.classList.add(activeAdjustmentClassName);
+    const activeOptionBoxClassName = 'adjustments__option-box_active';
+    const activeAdjustmentValue = data[activeAdjustment];
+
+    adjustmentNameListEls.forEach((adjustmentNameListEl) => {
+      if (adjustmentNameListEl.dataset.id == activeAdjustment) {
+        adjustmentNameListEl.classList.add(activeAdjustmentClassName);
       } else {
-        adjustmentListEl.classList.remove(activeAdjustmentClassName);
+        adjustmentNameListEl.classList.remove(activeAdjustmentClassName);
       }
     });
 
-    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
-    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
+    const currentOptionEls = [...adjustmentOptionsContainerEl.children];
+    currentOptionEls.forEach((currentOptionEl) => {
+      currentOptionEl.remove();
+    });
 
-    const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
-      activeAdjustment,
-      sliderEl
-    );
+    const optionElList = adjustmentOptionsElLists[activeAdjustment];
 
-    sliderEl.value = adjustmentValScaled;
+    let optionHue = hue;
+    let optionSaturation = saturation;
+    let optionColorValue = value;
+    let optionBorderRadius = borderRadius;
+    let optionLabelTransform = labelTransform;
+
+    optionElList.forEach((optionEl) => {
+      const optionDataValue = Number(optionEl.dataset.value);
+      if (optionDataValue === activeAdjustmentValue) {
+        optionEl.classList.add(activeOptionBoxClassName);
+      } else {
+        optionEl.classList.remove(activeOptionBoxClassName);
+      }
+
+      switch (activeAdjustment) {
+        case 'hue':
+          optionHue = optionDataValue;
+          break;
+        case 'value':
+          optionColorValue = optionDataValue;
+          break;
+        case 'borderRadius':
+          optionBorderRadius = optionDataValue;
+          break;
+        case 'labelTransform':
+          optionLabelTransform = optionDataValue;
+          break;
+        default:
+          console.warn(
+            `The adjustment “${activeAdjustment}” doesn't seem supported yet.`
+          );
+      }
+
+      const backgroundColorValueIdle = getHslPropValue({
+        hue: optionHue,
+        saturation: optionSaturation,
+        value: optionColorValue,
+      });
+      const borderRadiusValue = `${optionBorderRadius}px`;
+      const textTransformValue = Data.getLabelTransformValue(
+        optionLabelTransform
+      );
+
+      const buttonEl = optionEl.querySelector('.button');
+
+      buttonEl.style.backgroundColor = backgroundColorValueIdle;
+      buttonEl.style.borderRadius = borderRadiusValue;
+
+      const labelEl = buttonEl.children[0];
+      labelEl.style.textTransform = textTransformValue;
+    });
+
+    adjustmentOptionsContainerEl.append(...optionElList);
+  }
+
+  function createAdjustmentOptionEls(adjustmentNames) {
+    adjustmentNames.forEach((name) => {
+      const elements = [];
+      const { min, max } = Data.getAdjustmentRange(name);
+
+      for (let i = min; i <= max; i += 1) {
+        const optionBoxEl = document.createElement('div');
+        const buttonEl = document.createElement('div');
+        const labelEl = document.createElement('span');
+        optionBoxEl.classList.add('adjustments__option-box');
+        optionBoxEl.dataset.value = i;
+        buttonEl.classList.add('button', 'button_idle');
+        labelEl.classList.add('button__label');
+        labelEl.textContent = 'Send';
+        optionBoxEl.append(buttonEl);
+        buttonEl.append(labelEl);
+        elements.push(optionBoxEl);
+      }
+
+      adjustmentOptionsElLists[name] = elements;
+    });
   }
 
   function updateDebugView(dataObj) {
@@ -273,19 +334,21 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
-  function handleAdjustmentListElClick(e) {
+  function handleAdjustmentNameListElClick(e) {
     Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
     render();
   }
 
-  function handleSliderElInput(e) {
+  function handleAdjustmentOptionsContainerElClick(e) {
+    const closestOptionEl = e.target.closest('.adjustments__option-box');
+
+    if (!closestOptionEl) {
+      return;
+    }
+
+    const value = Number(closestOptionEl.dataset.value);
     const activeAdjustmentName = Data.getData().activeAdjustment;
-    const slider = e.currentTarget;
-    const valScaled = Data.scaleAdjustmentValueFromSlider(
-      activeAdjustmentName,
-      slider
-    );
-    Data.setData({ [activeAdjustmentName]: valScaled });
+    Data.setData({ [activeAdjustmentName]: value });
     render();
   }
 
@@ -294,11 +357,12 @@ const App = (function buildApp() {
   }
 
   function addEventListeners() {
-    adjustmentListEls.forEach((adjustmentListEl) => {
-      adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
+    adjustmentNameListEls.forEach((adjustmentNameListEl) => {
+      adjustmentNameListEl.addEventListener(
+        'click',
+        handleAdjustmentNameListElClick
+      );
     });
-
-    sliderEl.addEventListener('input', handleSliderElInput);
 
     const debugLink = document
       .getElementsByClassName('footer__link-debug')
@@ -307,6 +371,11 @@ const App = (function buildApp() {
 
     window.addEventListener('load', setVh);
     window.addEventListener('resize', setVh);
+
+    adjustmentOptionsContainerEl.addEventListener(
+      'click',
+      handleAdjustmentOptionsContainerElClick
+    );
   }
 
   function setDomReferences() {
@@ -314,27 +383,26 @@ const App = (function buildApp() {
     const buttonLabelElsHTMLCollection = document.getElementsByClassName(
       'button__label'
     );
-    const adjustmentListElsHTMLCollection = document.getElementsByClassName(
+    const adjustmentNameListElsHTMLCollection = document.getElementsByClassName(
       'adjustments__list-item'
     );
     buttonEls = [...buttonElsHTMLCollection];
-    adjustmentListEls = [...adjustmentListElsHTMLCollection];
+    adjustmentNameListEls = [...adjustmentNameListElsHTMLCollection];
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
-    sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
     styleEl = document.getElementsByClassName('dynamic-styles').item(0);
+    adjustmentOptionsContainerEl = document
+      .getElementsByClassName('adjustments__options-container')
+      .item(0);
   }
 
   return {
     async init() {
       Data.init();
       setDomReferences();
+      createAdjustmentOptionEls(Data.getAdjustmentNames());
       addEventListeners();
       render();
-    },
-
-    getSliderEl() {
-      return sliderEl;
     },
   };
 })();
