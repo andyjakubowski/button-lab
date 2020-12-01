@@ -1,40 +1,40 @@
 body {
   margin: 0;
-  min-height: 100vh;
-  min-height: calc(var(--vh, 1vh) * 100);
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
 
   display: flex;
   flex-direction: column;
+
+  overflow: hidden;
 
   font-family: sans-serif;
 }
 
 main {
   flex-grow: 1;
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
 }
 
 .main-content {
+  height: 100%;
+
   flex-grow: 1;
 
   display: flex;
   flex-direction: column;
+
+  overflow: hidden;
 }
 
 .preview {
-  /* flex-grow: 1; */
-
-  /* display: flex;
-  flex-direction: column; */
-
   background-color: gray;
 }
 
 .preview__pane {
-  /* flex-grow: 1; */
-
   padding: 32px 0;
 
   display: flex;
@@ -81,6 +81,10 @@ main {
   padding-top: 8px;
 
   flex-grow: 1;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   background-color: black;
 }
@@ -130,7 +134,10 @@ main {
 
 .adjustments__options-container {
   display: flex;
+  flex-grow: 1;
   flex-wrap: wrap;
+  align-content: flex-start;
+  overflow: scroll;
 }
 
 .footer {
@@ -156,7 +163,9 @@ main {
 }
 
 .debug-container {
-  position: absolute;
+  position: fixed;
+  top: 0;
+  left: 0;
   pointer-events: none;
 }
 
