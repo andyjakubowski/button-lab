@@ -113,32 +113,6 @@ const Data = (function makeData() {
       });
     },
 
-    scaleAdjustmentValueToSlider(adjustmentName, sliderEl) {
-      const val = getAdjustmentValue(adjustmentName);
-      const inMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
-      const inMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
-      const sliderMin = Number(sliderEl.min);
-      const sliderMax = Number(sliderEl.max);
-      const valScaled = MathUtil.scale(val, inMin, inMax, sliderMin, sliderMax);
-      return valScaled;
-    },
-
-    scaleAdjustmentValueFromSlider(adjustmentName, sliderEl) {
-      const sliderVal = sliderEl.value;
-      const sliderMin = Number(sliderEl.min);
-      const sliderMax = Number(sliderEl.max);
-      const adjustmentMin = CONFIG.ADJUSTMENTS[adjustmentName].min;
-      const adjustmentMax = CONFIG.ADJUSTMENTS[adjustmentName].max;
-      const newVal = MathUtil.scale(
-        sliderVal,
-        sliderMin,
-        sliderMax,
-        adjustmentMin,
-        adjustmentMax
-      );
-      return newVal;
-    },
-
     getAdjustmentRange(adjustmentName) {
       const range = CONFIG.ADJUSTMENTS[adjustmentName];
       return {
@@ -164,7 +138,6 @@ const App = (function buildApp() {
   let debugPreEl;
   let adjustmentNameListEls;
   let adjustmentOptionsContainerEl;
-  let sliderEl;
   let styleEl;
 
   function setVh() {
