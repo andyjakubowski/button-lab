@@ -149,6 +149,10 @@ const Data = (function makeData() {
       };
     },
 
+    getAdjustmentNames() {
+      return Object.getOwnPropertyNames(CONFIG.ADJUSTMENTS);
+    },
+
     getLabelTransformValue(index) {
       return CONFIG.ADJUSTMENTS['labelTransform'].options[index];
     },
@@ -156,8 +160,10 @@ const Data = (function makeData() {
 })();
 
 const App = (function buildApp() {
+  const adjustmentOptionsElLists = {};
   let debugPreEl;
-  let adjustmentListEls;
+  let adjustmentNameListEls;
+  let adjustmentOptionsContainerEl;
   let sliderEl;
   let styleEl;
 
@@ -247,23 +253,63 @@ const App = (function buildApp() {
 
   function updateAdjustmentsView({ activeAdjustment }) {
     const activeAdjustmentClassName = 'adjustments__list-item_active';
-    adjustmentListEls.forEach((adjustmentListEl) => {
-      if (adjustmentListEl.dataset.id == activeAdjustment) {
-        adjustmentListEl.classList.add(activeAdjustmentClassName);
+    adjustmentNameListEls.forEach((adjustmentNameListEl) => {
+      if (adjustmentNameListEl.dataset.id == activeAdjustment) {
+        adjustmentNameListEl.classList.add(activeAdjustmentClassName);
       } else {
-        adjustmentListEl.classList.remove(activeAdjustmentClassName);
+        adjustmentNameListEl.classList.remove(activeAdjustmentClassName);
       }
     });
 
-    sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
-    sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
+    const currentOptionEls = [...adjustmentOptionsContainerEl.children];
+    currentOptionEls.forEach((currentOptionEl) => {
+      currentOptionEl.remove();
+    });
 
-    const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
-      activeAdjustment,
-      sliderEl
-    );
+    const optionElList = adjustmentOptionsElLists[activeAdjustment];
+    adjustmentOptionsContainerEl.append(...optionElList);
 
-    sliderEl.value = adjustmentValScaled;
+    // sliderEl.min = Data.getAdjustmentRange(activeAdjustment).min;
+    // sliderEl.max = Data.getAdjustmentRange(activeAdjustment).max;
+
+    // const adjustmentValScaled = Data.scaleAdjustmentValueToSlider(
+    //   activeAdjustment,
+    //   sliderEl
+    // );
+
+    // sliderEl.value = adjustmentValScaled;
+  }
+
+  function createAdjustmentOptionEls(adjustmentNames) {
+    const {
+      hue,
+      saturation,
+      value,
+      borderRadius,
+      labelTransform,
+    } = Data.getData();
+
+    adjustmentNames.forEach((name) => {
+      // if (name !== 'hue') {
+      //   return;
+      // }
+
+      console.log(`\nProcessing: ${name}`);
+      const elements = [];
+      const { min, max } = Data.getAdjustmentRange(name);
+
+      for (let i = min; i <= max; i += 1) {
+        const buttonEl = document.createElement('div');
+        const labelEl = document.createElement('span');
+        buttonEl.classList.add('button', 'button_idle');
+        labelEl.classList.add('button__label');
+        labelEl.textContent = 'Send';
+        buttonEl.append(labelEl);
+        elements.push(buttonEl);
+      }
+
+      adjustmentOptionsElLists[name] = elements;
+    });
   }
 
   function updateDebugView(dataObj) {
@@ -273,7 +319,7 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
-  function handleAdjustmentListElClick(e) {
+  function handleadjustmentNameListElClick(e) {
     Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
     render();
   }
@@ -294,11 +340,14 @@ const App = (function buildApp() {
   }
 
   function addEventListeners() {
-    adjustmentListEls.forEach((adjustmentListEl) => {
-      adjustmentListEl.addEventListener('click', handleAdjustmentListElClick);
+    adjustmentNameListEls.forEach((adjustmentNameListEl) => {
+      adjustmentNameListEl.addEventListener(
+        'click',
+        handleadjustmentNameListElClick
+      );
     });
 
-    sliderEl.addEventListener('input', handleSliderElInput);
+    // sliderEl.addEventListener('input', handleSliderElInput);
 
     const debugLink = document
       .getElementsByClassName('footer__link-debug')
@@ -314,15 +363,18 @@ const App = (function buildApp() {
     const buttonLabelElsHTMLCollection = document.getElementsByClassName(
       'button__label'
     );
-    const adjustmentListElsHTMLCollection = document.getElementsByClassName(
+    const adjustmentNameListElsHTMLCollection = document.getElementsByClassName(
       'adjustments__list-item'
     );
     buttonEls = [...buttonElsHTMLCollection];
-    adjustmentListEls = [...adjustmentListElsHTMLCollection];
+    adjustmentNameListEls = [...adjustmentNameListElsHTMLCollection];
     debugPreEl = document.getElementsByClassName('debug-pre').item(0);
     buttonLabelEls = [...buttonLabelElsHTMLCollection];
-    sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
+    // sliderEl = document.getElementsByClassName('adjustments__slider').item(0);
     styleEl = document.getElementsByClassName('dynamic-styles').item(0);
+    adjustmentOptionsContainerEl = document
+      .getElementsByClassName('adjustments__options-container')
+      .item(0);
   }
 
   return {
@@ -330,11 +382,16 @@ const App = (function buildApp() {
       Data.init();
       setDomReferences();
       addEventListeners();
+      createAdjustmentOptionEls(Data.getAdjustmentNames());
       render();
     },
 
     getSliderEl() {
       return sliderEl;
+    },
+
+    getAdjustmentOptionsElLists() {
+      return adjustmentOptionsElLists;
     },
   };
 })();
