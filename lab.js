@@ -6,6 +6,7 @@ const Data = (function makeData() {
   const CONFIG = {
     SATURATION_PERCENT: 75,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
+    ADJUSTMENTS_WITH_COUNT_FILTER: ['hue', 'value', 'borderRadius'],
     ADJUSTMENTS: {
       hue: {
         min: 0,
@@ -40,7 +41,9 @@ const Data = (function makeData() {
     hueCount: 10,
     saturation: null,
     value: null,
+    valueCount: 5,
     borderRadius: null,
+    borderRadiusCount: 5,
     labelTransform: null,
     activeAdjustment: 'hue',
   };
@@ -121,6 +124,10 @@ const Data = (function makeData() {
     getLabelTransformValue(index) {
       return CONFIG.ADJUSTMENTS['labelTransform'].options[index];
     },
+
+    isAdjustmentCountFilterable(adjustmentName) {
+      return CONFIG.ADJUSTMENTS_WITH_COUNT_FILTER.includes(adjustmentName);
+    },
   };
 })();
 
@@ -128,11 +135,11 @@ const App = (function buildApp() {
   const adjustmentOptionsElLists = {};
   let debugPreEl;
   let adjustmentNameListEls;
-  let hueCountContainerEl;
   let adjustmentOptionsContainerEl;
   let styleEl;
-  let hueCountSliderEl;
-  let hueCountLabelEl;
+  let adjustmentCountContainerEl;
+  let adjustmentCountSliderEl;
+  let adjustmentCountLabelEl;
 
   function setVh() {
     const vh = window.innerHeight * 0.01;
@@ -218,25 +225,30 @@ const App = (function buildApp() {
     `;
   }
 
+  function getCountKey(adjustmentName) {
+    return `${adjustmentName}Count`;
+  }
+
   function filterOptionElList(optionElList, activeAdjustment) {
-    if (activeAdjustment !== 'hue') {
+    if (!Data.isAdjustmentCountFilterable(activeAdjustment)) {
       return optionElList;
     }
 
-    const { hueCount } = Data.getData();
-    let { min: hueMin, max: hueMax } = Data.getAdjustmentRange(
-      activeAdjustment
-    );
-    hueMax += 1;
-    const hueInterval = hueMax / hueCount;
+    const countKey = getCountKey(activeAdjustment);
+    const { [countKey]: desiredCount } = Data.getData();
+    let { min, max } = Data.getAdjustmentRange(activeAdjustment);
+
+    // Add one because we want min and max inclusive
+    const totalCount = max - min + 1;
+    const interval = totalCount / desiredCount;
 
     const filteredResult = [];
 
-    for (let hueFloat = hueMin; hueFloat < hueMax; hueFloat += hueInterval) {
-      const index = Math.floor(hueFloat);
-      const optionEl = optionElList[index];
+    for (let indexFloat = 0; indexFloat <= totalCount; indexFloat += interval) {
+      const optionIndex = Math.floor(indexFloat);
+      const optionEl = optionElList[optionIndex];
 
-      if (filteredResult.length >= hueCount) {
+      if (filteredResult.length >= desiredCount) {
         break;
       }
 
@@ -244,7 +256,7 @@ const App = (function buildApp() {
     }
 
     console.log(
-      `Okay let’s show ${hueCount} out of ${hueMax} colors with an interval of ${hueInterval}.`
+      `Okay let’s show ${desiredCount} out of ${totalCount} colors with an interval of ${interval}.`
     );
 
     return filteredResult;
@@ -254,7 +266,6 @@ const App = (function buildApp() {
     const {
       activeAdjustment,
       hue,
-      hueCount,
       saturation,
       value,
       borderRadius,
@@ -262,8 +273,8 @@ const App = (function buildApp() {
     } = data;
     const activeAdjustmentClassName = 'adjustments__list-item_active';
     const activeOptionBoxClassName = 'adjustments__option-box_active';
-    const activeHueCountContainerClassName =
-      'adjustments__hue-count-container_active';
+    const activeAdjustmentCountContainerClassName =
+      'adjustments__count-container_active';
     const activeAdjustmentValue = data[activeAdjustment];
 
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
@@ -274,12 +285,24 @@ const App = (function buildApp() {
       }
     });
 
-    if (activeAdjustment === 'hue') {
-      hueCountContainerEl.classList.add(activeHueCountContainerClassName);
-      hueCountSliderEl.value = hueCount;
-      hueCountLabelEl.textContent = String(hueCount);
+    if (Data.isAdjustmentCountFilterable(activeAdjustment)) {
+      const { min, max } = Data.getAdjustmentRange(activeAdjustment);
+      const totalCount = max - min + 1;
+      const sliderMin = 1;
+      const sliderMax = totalCount;
+      const countKey = getCountKey(activeAdjustment);
+      const adjustmentCount = data[countKey];
+      adjustmentCountContainerEl.classList.add(
+        activeAdjustmentCountContainerClassName
+      );
+      adjustmentCountSliderEl.value = adjustmentCount;
+      adjustmentCountSliderEl.min = sliderMin;
+      adjustmentCountSliderEl.max = sliderMax;
+      adjustmentCountLabelEl.textContent = String(adjustmentCount);
     } else {
-      hueCountContainerEl.classList.remove(activeHueCountContainerClassName);
+      adjustmentCountContainerEl.classList.remove(
+        activeAdjustmentCountContainerClassName
+      );
     }
 
     const currentOptionEls = [...adjustmentOptionsContainerEl.children];
@@ -401,16 +424,11 @@ const App = (function buildApp() {
     debugPreEl.classList.toggle('debug-pre_off');
   }
 
-  function handleHueCountSliderElChange(e) {
+  function handleAdjustmentCountSliderElInput(e) {
     const sliderValue = Number(e.target.value);
-    Data.setData({ hueCount: sliderValue });
-    render();
-  }
-
-  function handleHueCountSliderElInput(e) {
-    const sliderValueString = e.target.value;
-    const sliderValue = Number(e.target.value);
-    Data.setData({ hueCount: sliderValue });
+    const activeAdjustmentName = Data.getData().activeAdjustment;
+    const countKey = getCountKey(activeAdjustmentName);
+    Data.setData({ [countKey]: sliderValue });
     render();
   }
 
@@ -435,8 +453,10 @@ const App = (function buildApp() {
       handleAdjustmentOptionsContainerElClick
     );
 
-    hueCountSliderEl.addEventListener('change', handleHueCountSliderElChange);
-    hueCountSliderEl.addEventListener('input', handleHueCountSliderElInput);
+    adjustmentCountSliderEl.addEventListener(
+      'input',
+      handleAdjustmentCountSliderElInput
+    );
   }
 
   function setDomReferences() {
@@ -455,14 +475,14 @@ const App = (function buildApp() {
     adjustmentOptionsContainerEl = document
       .getElementsByClassName('adjustments__options-container')
       .item(0);
-    hueCountContainerEl = document
-      .getElementsByClassName('adjustments__hue-count-container')
+    adjustmentCountContainerEl = document
+      .getElementsByClassName('adjustments__count-container')
       .item(0);
-    hueCountSliderEl = document
-      .getElementsByClassName('adjustments__hue-count-slider')
+    adjustmentCountSliderEl = document
+      .getElementsByClassName('adjustments__count-slider')
       .item(0);
-    hueCountLabelEl = document
-      .getElementsByClassName('adjustments__hue-count-label')
+    adjustmentCountLabelEl = document
+      .getElementsByClassName('adjustments__count-label')
       .item(0);
   }
 

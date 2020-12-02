@@ -230,20 +230,20 @@ main {
   color: #eee;
 }
 
-.adjustments__hue-count-container {
+.adjustments__count-container {
   display: none;
 }
 
-.adjustments__hue-count-container_active {
+.adjustments__count-container_active {
   display: block;
 }
 
-.adjustments__hue-count-paragraph {
+.adjustments__count-paragraph {
   margin: 16px 24px 0;
   color: #555;
 }
 
-.adjustments__hue-count-label {
+.adjustments__count-label {
   color: #aaa;
   font-weight: bolder;
 }
