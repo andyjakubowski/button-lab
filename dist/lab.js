@@ -6,7 +6,7 @@ const Data = (function makeData() {
   const CONFIG = {
     SATURATION_PERCENT: 75,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
-    ADJUSTMENTS_WITH_COUNT_FILTER: ['hue', 'value'],
+    ADJUSTMENTS_WITH_COUNT_FILTER: ['hue', 'value', 'borderRadius'],
     ADJUSTMENTS: {
       hue: {
         min: 0,
@@ -41,8 +41,9 @@ const Data = (function makeData() {
     hueCount: 10,
     saturation: null,
     value: null,
-    valueCount: 21,
+    valueCount: 5,
     borderRadius: null,
+    borderRadiusCount: 5,
     labelTransform: null,
     activeAdjustment: 'hue',
   };
