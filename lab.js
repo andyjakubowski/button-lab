@@ -37,6 +37,7 @@ const Data = (function makeData() {
 
   let state = {
     hue: null,
+    hueCount: 10,
     saturation: null,
     value: null,
     borderRadius: null,
@@ -93,14 +94,7 @@ const Data = (function makeData() {
     },
 
     getData() {
-      return {
-        hue: state.hue,
-        saturation: state.saturation,
-        value: state.value,
-        borderRadius: state.borderRadius,
-        labelTransform: state.labelTransform,
-        activeAdjustment: state.activeAdjustment,
-      };
+      return state;
     },
 
     setData(newDataObj) {
@@ -134,8 +128,11 @@ const App = (function buildApp() {
   const adjustmentOptionsElLists = {};
   let debugPreEl;
   let adjustmentNameListEls;
+  let hueCountContainerEl;
   let adjustmentOptionsContainerEl;
   let styleEl;
+  let hueCountSliderEl;
+  let hueCountLabelEl;
 
   function setVh() {
     const vh = window.innerHeight * 0.01;
@@ -221,10 +218,38 @@ const App = (function buildApp() {
     `;
   }
 
+  function filterOptionElList(optionElList, activeAdjustment) {
+    if (activeAdjustment !== 'hue') {
+      return optionElList;
+    }
+
+    const { hueCount } = Data.getData();
+    let { min: hueMin, max: hueMax } = Data.getAdjustmentRange(
+      activeAdjustment
+    );
+    hueMax += 1;
+    const hueInterval = hueMax / hueCount;
+
+    const filteredResult = [];
+
+    for (let hueFloat = hueMin; hueFloat < hueMax; hueFloat += hueInterval) {
+      const index = Math.floor(hueFloat);
+      const optionEl = optionElList[index];
+      filteredResult.push(optionEl);
+    }
+
+    console.log(
+      `Okay let’s show ${hueCount} out of ${hueMax} colors with an interval of ${hueInterval}.`
+    );
+
+    return filteredResult;
+  }
+
   function updateAdjustmentsView(data) {
     const {
       activeAdjustment,
       hue,
+      hueCount,
       saturation,
       value,
       borderRadius,
@@ -232,6 +257,8 @@ const App = (function buildApp() {
     } = data;
     const activeAdjustmentClassName = 'adjustments__list-item_active';
     const activeOptionBoxClassName = 'adjustments__option-box_active';
+    const activeHueCountContainerClassName =
+      'adjustments__hue-count-container_active';
     const activeAdjustmentValue = data[activeAdjustment];
 
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
@@ -241,6 +268,14 @@ const App = (function buildApp() {
         adjustmentNameListEl.classList.remove(activeAdjustmentClassName);
       }
     });
+
+    if (activeAdjustment === 'hue') {
+      hueCountContainerEl.classList.add(activeHueCountContainerClassName);
+      hueCountSliderEl.value = hueCount;
+      hueCountLabelEl.textContent = String(hueCount);
+    } else {
+      hueCountContainerEl.classList.remove(activeHueCountContainerClassName);
+    }
 
     const currentOptionEls = [...adjustmentOptionsContainerEl.children];
     currentOptionEls.forEach((currentOptionEl) => {
@@ -255,7 +290,12 @@ const App = (function buildApp() {
     let optionBorderRadius = borderRadius;
     let optionLabelTransform = labelTransform;
 
-    optionElList.forEach((optionEl) => {
+    const filteredOptionElList = filterOptionElList(
+      optionElList,
+      activeAdjustment
+    );
+
+    filteredOptionElList.forEach((optionEl) => {
       const optionDataValue = Number(optionEl.dataset.value);
       if (optionDataValue === activeAdjustmentValue) {
         optionEl.classList.add(activeOptionBoxClassName);
@@ -301,7 +341,7 @@ const App = (function buildApp() {
       labelEl.style.textTransform = textTransformValue;
     });
 
-    adjustmentOptionsContainerEl.append(...optionElList);
+    adjustmentOptionsContainerEl.append(...filteredOptionElList);
   }
 
   function createAdjustmentOptionEls(adjustmentNames) {
@@ -356,6 +396,19 @@ const App = (function buildApp() {
     debugPreEl.classList.toggle('debug-pre_off');
   }
 
+  function handleHueCountSliderElChange(e) {
+    const sliderValue = Number(e.target.value);
+    Data.setData({ hueCount: sliderValue });
+    render();
+  }
+
+  function handleHueCountSliderElInput(e) {
+    const sliderValueString = e.target.value;
+    const sliderValue = Number(e.target.value);
+    Data.setData({ hueCount: sliderValue });
+    render();
+  }
+
   function addEventListeners() {
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
       adjustmentNameListEl.addEventListener(
@@ -376,6 +429,9 @@ const App = (function buildApp() {
       'click',
       handleAdjustmentOptionsContainerElClick
     );
+
+    hueCountSliderEl.addEventListener('change', handleHueCountSliderElChange);
+    hueCountSliderEl.addEventListener('input', handleHueCountSliderElInput);
   }
 
   function setDomReferences() {
@@ -393,6 +449,15 @@ const App = (function buildApp() {
     styleEl = document.getElementsByClassName('dynamic-styles').item(0);
     adjustmentOptionsContainerEl = document
       .getElementsByClassName('adjustments__options-container')
+      .item(0);
+    hueCountContainerEl = document
+      .getElementsByClassName('adjustments__hue-count-container')
+      .item(0);
+    hueCountSliderEl = document
+      .getElementsByClassName('adjustments__hue-count-slider')
+      .item(0);
+    hueCountLabelEl = document
+      .getElementsByClassName('adjustments__hue-count-label')
       .item(0);
   }
 

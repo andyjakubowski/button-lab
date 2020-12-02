@@ -1,9 +1,11 @@
 .adjustments__slider-container {
   min-height: 48px;
-  height: 144px;
+  height: 72px;
 
   display: flex;
   justify-content: center;
+
+  /* background-color: #7f7f7f; */
 }
 
 .adjustments__slider {

@@ -176,6 +176,8 @@ main {
 
 .adjustments {
   flex-grow: 1;
+  margin: 0 auto;
+  max-width: 600px;
 
   display: flex;
   flex-direction: column;
@@ -228,10 +230,26 @@ main {
   color: #eee;
 }
 
+.adjustments__hue-count-container {
+  display: none;
+}
+
+.adjustments__hue-count-container_active {
+  display: block;
+}
+
+.adjustments__hue-count-paragraph {
+  margin: 16px 24px 0;
+  color: #555;
+}
+
+.adjustments__hue-count-label {
+  color: #aaa;
+  font-weight: bolder;
+}
+
 .adjustments__options-container {
-  margin: 0 auto;
-  padding-block-end: 32px;
-  max-width: 600px;
+  margin-block-end: 32px;
   display: flex;
   flex-grow: 1;
   flex-wrap: wrap;
