@@ -401,14 +401,7 @@ const App = (function buildApp() {
     debugPreEl.classList.toggle('debug-pre_off');
   }
 
-  function handleHueCountSliderElChange(e) {
-    const sliderValue = Number(e.target.value);
-    Data.setData({ hueCount: sliderValue });
-    render();
-  }
-
   function handleHueCountSliderElInput(e) {
-    const sliderValueString = e.target.value;
     const sliderValue = Number(e.target.value);
     Data.setData({ hueCount: sliderValue });
     render();
@@ -435,7 +428,6 @@ const App = (function buildApp() {
       handleAdjustmentOptionsContainerElClick
     );
 
-    hueCountSliderEl.addEventListener('change', handleHueCountSliderElChange);
     hueCountSliderEl.addEventListener('input', handleHueCountSliderElInput);
   }
 
