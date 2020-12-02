@@ -235,6 +235,11 @@ const App = (function buildApp() {
     for (let hueFloat = hueMin; hueFloat < hueMax; hueFloat += hueInterval) {
       const index = Math.floor(hueFloat);
       const optionEl = optionElList[index];
+
+      if (filteredResult.length >= hueCount) {
+        break;
+      }
+
       filteredResult.push(optionEl);
     }
 
