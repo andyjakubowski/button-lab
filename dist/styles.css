@@ -45,6 +45,7 @@ main {
   --scroll-element-margin-inline: calc(
     calc(var(--content-width-default) - var(--scroll-element-width)) / 2
   );
+  --scroll--gap: 32px;
 
   height: 100%;
 
@@ -62,7 +63,7 @@ main {
 }
 
 .scroll__element-container {
-  margin-inline-end: 30px;
+  margin-inline-end: var(--scroll--gap);
   border-radius: 14px;
   min-width: 260px;
 
@@ -76,6 +77,26 @@ main {
 
 .scroll__element-container:last-of-type {
   margin-inline-end: var(--scroll-element-margin-inline);
+}
+
+@media screen and (min-width: 40em) {
+  .scroll__container {
+    scroll-snap-type: none;
+  }
+
+  .scroll__element-container:first-of-type {
+    margin-inline-start: var(--scroll--gap);
+  }
+
+  .scroll__element-container:last-of-type {
+    margin-inline-end: var(--scroll--gap);
+  }
+}
+
+@media screen and (min-width: 74em) {
+  .scroll__container {
+    justify-content: center;
+  }
 }
 
 .preview__element {
