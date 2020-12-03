@@ -140,6 +140,7 @@ const App = (function buildApp() {
   let adjustmentCountContainerEl;
   let adjustmentCountSliderEl;
   let adjustmentCountLabelEl;
+  let getJsonAnchorEl;
 
   function setVh() {
     const vh = window.innerHeight * 0.01;
@@ -154,8 +155,9 @@ const App = (function buildApp() {
     const data = Data.getData();
     const stylesObject = getButtonStyles(data);
     setButtonStyles(stylesObject);
-    updateDebugView(data);
     updateAdjustmentsView(data);
+    updateDebugView(data);
+    updateDownloadLink(data);
   }
 
   function getButtonStyles({
@@ -225,6 +227,42 @@ const App = (function buildApp() {
     `;
   }
 
+  function getStyleExportObject(data) {
+    const { hue, saturation, value, borderRadius, labelTransform } = data;
+    const stylesObject = {
+      button: {
+        label: {
+          text: {
+            textColor: {
+              value: 'white',
+              type: 'keyword',
+            },
+            textTransform: {
+              value: Data.getLabelTransformValue(labelTransform),
+              type: 'keyword',
+            },
+          },
+        },
+        background: {
+          backgroundColor: {
+            value: {
+              h: hue,
+              s: saturation,
+              l: value,
+            },
+            type: 'hsl',
+          },
+          borderRadius: {
+            value: borderRadius,
+            type: 'px',
+          },
+        },
+      },
+    };
+
+    return stylesObject;
+  }
+
   function getCountKey(adjustmentName) {
     return `${adjustmentName}Count`;
   }
@@ -254,10 +292,6 @@ const App = (function buildApp() {
 
       filteredResult.push(optionEl);
     }
-
-    console.log(
-      `Okay let’s show ${desiredCount} out of ${totalCount} colors with an interval of ${interval}.`
-    );
 
     return filteredResult;
   }
@@ -402,6 +436,16 @@ const App = (function buildApp() {
     debugPreEl.textContent = contentStr;
   }
 
+  function updateDownloadLink(dataObj) {
+    const stylesObject = getStyleExportObject(dataObj);
+    const jsonObject = JSON.stringify(stylesObject);
+    const blob = new Blob([jsonObject], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    getJsonAnchorEl.href = url;
+    getJsonAnchorEl.download = `button-styles.json`;
+  }
+
   function handleAdjustmentNameListElClick(e) {
     Data.setData({ activeAdjustment: e.currentTarget.dataset.id });
     render();
@@ -483,6 +527,9 @@ const App = (function buildApp() {
       .item(0);
     adjustmentCountLabelEl = document
       .getElementsByClassName('adjustments__count-label')
+      .item(0);
+    getJsonAnchorEl = document
+      .getElementsByClassName('footer__link-get-json')
       .item(0);
   }
 
