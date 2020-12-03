@@ -1,8 +1,10 @@
 # Button Lab
 
-Easily create buttons that look good
+Concept: easily create buttons that look good
 
-## Try it out
+![GIF of the Button Lab demo](dist/assets/images/story/intro.gif)
+
+## Try the demo
 
 [https://andyjakubowski.github.io/button-lab/](https://andyjakubowski.github.io/button-lab/)
 
@@ -14,9 +16,7 @@ Easily create buttons that look good
 
 ## Twitter thread
 
-My goal for this project was to see how we could direct our tools at a higher level instead of focusing on low-level details. [Twitter thread](https://twitter.com/jakubowskiandy/status/1329100296312807425).
-
-<!-- ![Image of my Twitter thread describing project learnings](dist/assets/images/story/twitter-thread.png) -->
+My goal for this project was to see how we could direct our tools at a higher level instead of focusing on low-level details.
 
 ## License
 
