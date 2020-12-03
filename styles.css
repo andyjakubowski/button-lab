@@ -241,9 +241,15 @@ main {
   display: block;
 }
 
-.adjustments__count-paragraph {
-  margin: 16px 24px 0;
+.adjustments__alternative-options-container {
+  display: none;
+}
+
+.adjustments__paragraph {
+  margin: 16px 24px;
   color: #555;
+
+  line-height: 1.5;
 }
 
 .adjustments__count-label {
@@ -251,7 +257,8 @@ main {
   font-weight: bolder;
 }
 
-.adjustments__options-container {
+.adjustments__options-container,
+.adjustments__alternative-options-container_active {
   margin-block-end: 32px;
   display: flex;
   flex-grow: 1;
@@ -260,6 +267,9 @@ main {
   overflow: scroll;
 
   justify-content: center;
+}
+
+.adjustments__options-container {
 }
 
 .adjustments__option-box {

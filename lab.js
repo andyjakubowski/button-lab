@@ -7,12 +7,14 @@ const Data = (function makeData() {
     SATURATION_PERCENT: 75,
     TEXT_TRANSFORM_OPTIONS: ['capitalize', 'uppercase', 'lowercase'],
     ADJUSTMENTS_WITH_COUNT_FILTER: ['hue', 'value', 'borderRadius'],
+    ADJUSTMENTS_WITH_ALTERNATIVE_OPTIONS: ['hue'],
     ADJUSTMENTS: {
       hue: {
         min: 0,
         max: 359,
         overallMin: 0,
         overallMax: 359,
+        alternativeOptionData: ColorPalettes.apple,
       },
       value: {
         min: 40,
@@ -97,7 +99,7 @@ const Data = (function makeData() {
     },
 
     getData() {
-      return state;
+      return { ...state };
     },
 
     setData(newDataObj) {
@@ -117,8 +119,18 @@ const Data = (function makeData() {
       };
     },
 
+    getDefaultSaturation() {
+      return CONFIG.SATURATION_PERCENT;
+    },
+
     getAdjustmentNames() {
       return Object.getOwnPropertyNames(CONFIG.ADJUSTMENTS);
+    },
+
+    getAlternativeAdjustmentOptionData(adjustmentName) {
+      const altData = CONFIG.ADJUSTMENTS[adjustmentName].alternativeOptionData;
+
+      return altData || null;
     },
 
     getLabelTransformValue(index) {
@@ -128,14 +140,22 @@ const Data = (function makeData() {
     isAdjustmentCountFilterable(adjustmentName) {
       return CONFIG.ADJUSTMENTS_WITH_COUNT_FILTER.includes(adjustmentName);
     },
+
+    hasAlternativeOptions(adjustmentName) {
+      return CONFIG.ADJUSTMENTS_WITH_ALTERNATIVE_OPTIONS.includes(
+        adjustmentName
+      );
+    },
   };
 })();
 
 const App = (function buildApp() {
   const adjustmentOptionsElLists = {};
+  const altAdjustmentOptionsElLists = {};
   let debugPreEl;
   let adjustmentNameListEls;
   let adjustmentOptionsContainerEl;
+  let alternativeOptionsContainerEl;
   let styleEl;
   let adjustmentCountContainerEl;
   let adjustmentCountSliderEl;
@@ -297,20 +317,14 @@ const App = (function buildApp() {
   }
 
   function updateAdjustmentsView(data) {
-    const {
-      activeAdjustment,
-      hue,
-      saturation,
-      value,
-      borderRadius,
-      labelTransform,
-    } = data;
+    const { activeAdjustment } = data;
     const activeAdjustmentClassName = 'adjustments__list-item_active';
-    const activeOptionBoxClassName = 'adjustments__option-box_active';
     const activeAdjustmentCountContainerClassName =
       'adjustments__count-container_active';
-    const activeAdjustmentValue = data[activeAdjustment];
+    const alternativeOptionsContainerClassName =
+      'adjustments__alternative-options-container_active';
 
+    // Show which adjustment is active
     adjustmentNameListEls.forEach((adjustmentNameListEl) => {
       if (adjustmentNameListEl.dataset.id == activeAdjustment) {
         adjustmentNameListEl.classList.add(activeAdjustmentClassName);
@@ -319,6 +333,31 @@ const App = (function buildApp() {
       }
     });
 
+    // Remove currently displayed adjustment options
+    const currentOptionEls = [...adjustmentOptionsContainerEl.children];
+    currentOptionEls.forEach((currentOptionEl) => {
+      currentOptionEl.remove();
+    });
+
+    // Style and show alternative options if available
+    if (Data.hasAlternativeOptions(activeAdjustment)) {
+      // Get list of elements for active adjustment
+      const optionElList = altAdjustmentOptionsElLists[activeAdjustment];
+
+      optionElList.forEach((optionEl) => {
+        styleOptionEl(optionEl, data);
+      });
+
+      alternativeOptionsContainerEl.classList.add(
+        alternativeOptionsContainerClassName
+      );
+    } else {
+      alternativeOptionsContainerEl.classList.remove(
+        alternativeOptionsContainerClassName
+      );
+    }
+
+    // Add option count slider for select adjustment types
     if (Data.isAdjustmentCountFilterable(activeAdjustment)) {
       const { min, max } = Data.getAdjustmentRange(activeAdjustment);
       const totalCount = max - min + 1;
@@ -326,106 +365,154 @@ const App = (function buildApp() {
       const sliderMax = totalCount;
       const countKey = getCountKey(activeAdjustment);
       const adjustmentCount = data[countKey];
-      adjustmentCountContainerEl.classList.add(
-        activeAdjustmentCountContainerClassName
-      );
       adjustmentCountSliderEl.value = adjustmentCount;
       adjustmentCountSliderEl.min = sliderMin;
       adjustmentCountSliderEl.max = sliderMax;
       adjustmentCountLabelEl.textContent = String(adjustmentCount);
+      adjustmentCountContainerEl.classList.add(
+        activeAdjustmentCountContainerClassName
+      );
     } else {
       adjustmentCountContainerEl.classList.remove(
         activeAdjustmentCountContainerClassName
       );
     }
 
-    const currentOptionEls = [...adjustmentOptionsContainerEl.children];
-    currentOptionEls.forEach((currentOptionEl) => {
-      currentOptionEl.remove();
-    });
-
+    // Get list of elements for active adjustment
     const optionElList = adjustmentOptionsElLists[activeAdjustment];
 
-    let optionHue = hue;
-    let optionSaturation = saturation;
-    let optionColorValue = value;
-    let optionBorderRadius = borderRadius;
-    let optionLabelTransform = labelTransform;
-
+    // Get list of option elements, filtered to match count slider if needed
     const filteredOptionElList = filterOptionElList(
       optionElList,
       activeAdjustment
     );
 
     filteredOptionElList.forEach((optionEl) => {
-      const optionDataValue = Number(optionEl.dataset.value);
-      if (optionDataValue === activeAdjustmentValue) {
-        optionEl.classList.add(activeOptionBoxClassName);
-      } else {
-        optionEl.classList.remove(activeOptionBoxClassName);
-      }
-
-      switch (activeAdjustment) {
-        case 'hue':
-          optionHue = optionDataValue;
-          break;
-        case 'value':
-          optionColorValue = optionDataValue;
-          break;
-        case 'borderRadius':
-          optionBorderRadius = optionDataValue;
-          break;
-        case 'labelTransform':
-          optionLabelTransform = optionDataValue;
-          break;
-        default:
-          console.warn(
-            `The adjustment “${activeAdjustment}” doesn't seem supported yet.`
-          );
-      }
-
-      const backgroundColorValueIdle = getHslPropValue({
-        hue: optionHue,
-        saturation: optionSaturation,
-        value: optionColorValue,
-      });
-      const borderRadiusValue = `${optionBorderRadius}px`;
-      const textTransformValue = Data.getLabelTransformValue(
-        optionLabelTransform
-      );
-
-      const buttonEl = optionEl.querySelector('.button');
-
-      buttonEl.style.backgroundColor = backgroundColorValueIdle;
-      buttonEl.style.borderRadius = borderRadiusValue;
-
-      const labelEl = buttonEl.children[0];
-      labelEl.style.textTransform = textTransformValue;
+      styleOptionEl(optionEl, data);
     });
 
+    // Add adjustment options to the container
     adjustmentOptionsContainerEl.append(...filteredOptionElList);
   }
 
+  function styleOptionEl(optionEl, data) {
+    const activeOptionBoxClassName = 'adjustments__option-box_active';
+    const { activeAdjustment } = data;
+    const optionData = { ...data };
+    const dataAttrNames = Object.getOwnPropertyNames(optionEl.dataset);
+    const optionElValueForActiveAdjustment = Number(
+      optionEl.dataset[activeAdjustment]
+    );
+    const activeAdjustmentValue = data[activeAdjustment];
+
+    if (optionElValueForActiveAdjustment === activeAdjustmentValue) {
+      optionEl.classList.add(activeOptionBoxClassName);
+    } else {
+      optionEl.classList.remove(activeOptionBoxClassName);
+    }
+
+    dataAttrNames.forEach((attrName) => {
+      optionData[attrName] = Number(optionEl.dataset[attrName]);
+    });
+
+    const backgroundColorValueIdle = getHslPropValue({
+      hue: optionData.hue,
+      saturation: optionData.saturation,
+      value: optionData.value,
+    });
+    const borderRadiusValue = `${optionData.borderRadius}px`;
+    const textTransformValue = Data.getLabelTransformValue(
+      optionData.labelTransform
+    );
+
+    const buttonEl = optionEl.querySelector('.button');
+
+    buttonEl.style.backgroundColor = backgroundColorValueIdle;
+    buttonEl.style.borderRadius = borderRadiusValue;
+
+    const labelEl = buttonEl.children[0];
+    labelEl.style.textTransform = textTransformValue;
+  }
+
+  function createOptionBoxEl(dataObj) {
+    const optionBoxEl = document.createElement('div');
+    const buttonEl = document.createElement('div');
+    const labelEl = document.createElement('span');
+    const propNames = Object.getOwnPropertyNames(dataObj);
+
+    propNames.forEach((name) => {
+      optionBoxEl.dataset[name] = dataObj[name];
+    });
+
+    optionBoxEl.classList.add('adjustments__option-box');
+    buttonEl.classList.add('button', 'button_idle');
+    labelEl.classList.add('button__label');
+    labelEl.textContent = 'Send';
+    optionBoxEl.append(buttonEl);
+    buttonEl.append(labelEl);
+
+    return optionBoxEl;
+  }
+
   function createAdjustmentOptionEls(adjustmentNames) {
-    adjustmentNames.forEach((name) => {
+    const defaultSaturation = Data.getDefaultSaturation();
+
+    adjustmentNames.forEach((adjustmentName) => {
       const elements = [];
-      const { min, max } = Data.getAdjustmentRange(name);
+      const { min, max } = Data.getAdjustmentRange(adjustmentName);
 
       for (let i = min; i <= max; i += 1) {
-        const optionBoxEl = document.createElement('div');
-        const buttonEl = document.createElement('div');
-        const labelEl = document.createElement('span');
-        optionBoxEl.classList.add('adjustments__option-box');
-        optionBoxEl.dataset.value = i;
-        buttonEl.classList.add('button', 'button_idle');
-        labelEl.classList.add('button__label');
-        labelEl.textContent = 'Send';
-        optionBoxEl.append(buttonEl);
-        buttonEl.append(labelEl);
+        const data = {
+          [adjustmentName]: i,
+        };
+
+        if (adjustmentName == 'hue') {
+          data['saturation'] = defaultSaturation;
+        }
+
+        const optionBoxEl = createOptionBoxEl(data);
         elements.push(optionBoxEl);
       }
 
-      adjustmentOptionsElLists[name] = elements;
+      adjustmentOptionsElLists[adjustmentName] = elements;
+    });
+  }
+
+  function createAltAdjustmentOptionEls(adjustmentNames) {
+    for (i = 0; i < adjustmentNames.length; i += 1) {
+      const adjustmentName = adjustmentNames[i];
+
+      if (!Data.hasAlternativeOptions(adjustmentName)) {
+        continue;
+      }
+
+      const altData = Data.getAlternativeAdjustmentOptionData(adjustmentName);
+      const hslColors = altData.map((color) => {
+        return ColorUtil.rgbToHsl({
+          red: color.r,
+          green: color.g,
+          blue: color.b,
+        });
+      });
+
+      const elements = hslColors.map((hslColor) => {
+        const data = {
+          hue: hslColor.h,
+          saturation: hslColor.s,
+          value: hslColor.l,
+        };
+
+        return createOptionBoxEl(data);
+      });
+
+      altAdjustmentOptionsElLists[adjustmentName] = elements;
+    }
+  }
+
+  function appendAltAdjustmentOptionEls(adjustmentNames) {
+    adjustmentNames.forEach((adjustmentName) => {
+      const optionEls = altAdjustmentOptionsElLists[adjustmentName];
+      alternativeOptionsContainerEl.append(...optionEls);
     });
   }
 
@@ -451,17 +538,29 @@ const App = (function buildApp() {
     render();
   }
 
-  function handleAdjustmentOptionsContainerElClick(e) {
+  function handleOptionsContainerClick(e) {
     const closestOptionEl = e.target.closest('.adjustments__option-box');
 
     if (!closestOptionEl) {
       return;
     }
 
-    const value = Number(closestOptionEl.dataset.value);
-    const activeAdjustmentName = Data.getData().activeAdjustment;
-    Data.setData({ [activeAdjustmentName]: value });
+    const adjustmentNames = Object.getOwnPropertyNames(closestOptionEl.dataset);
+    const newData = {};
+    adjustmentNames.forEach((adjustmentName) => {
+      const adjustmentValue = Number(closestOptionEl.dataset[adjustmentName]);
+      newData[adjustmentName] = adjustmentValue;
+    });
+    Data.setData(newData);
     render();
+  }
+
+  function handleAdjustmentOptionsContainerElClick(e) {
+    handleOptionsContainerClick(e);
+  }
+
+  function handleAltAdjustmentOptionsContainerElClick(e) {
+    handleOptionsContainerClick(e);
   }
 
   function handleDebugLinkClick() {
@@ -495,6 +594,11 @@ const App = (function buildApp() {
     adjustmentOptionsContainerEl.addEventListener(
       'click',
       handleAdjustmentOptionsContainerElClick
+    );
+
+    alternativeOptionsContainerEl.addEventListener(
+      'click',
+      handleAltAdjustmentOptionsContainerElClick
     );
 
     adjustmentCountSliderEl.addEventListener(
@@ -531,15 +635,25 @@ const App = (function buildApp() {
     getJsonAnchorEl = document
       .getElementsByClassName('footer__link-get-json')
       .item(0);
+    alternativeOptionsContainerEl = document
+      .getElementsByClassName('adjustments__alternative-options-container')
+      .item(0);
   }
 
   return {
     async init() {
+      const adjustmentNames = Data.getAdjustmentNames();
       Data.init();
       setDomReferences();
-      createAdjustmentOptionEls(Data.getAdjustmentNames());
+      createAdjustmentOptionEls(adjustmentNames);
+      createAltAdjustmentOptionEls(adjustmentNames);
+      appendAltAdjustmentOptionEls(['hue']);
       addEventListeners();
       render();
+    },
+
+    getAltAdjustmentOptionsElLists() {
+      return altAdjustmentOptionsElLists;
     },
   };
 })();
