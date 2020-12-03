@@ -156,6 +156,7 @@ const App = (function buildApp() {
   let adjustmentNameListEls;
   let adjustmentOptionsContainerEl;
   let alternativeOptionsContainerEl;
+  let alternativeOptionsListEl;
   let styleEl;
   let adjustmentCountContainerEl;
   let adjustmentCountSliderEl;
@@ -512,7 +513,7 @@ const App = (function buildApp() {
   function appendAltAdjustmentOptionEls(adjustmentNames) {
     adjustmentNames.forEach((adjustmentName) => {
       const optionEls = altAdjustmentOptionsElLists[adjustmentName];
-      alternativeOptionsContainerEl.append(...optionEls);
+      alternativeOptionsListEl.append(...optionEls);
     });
   }
 
@@ -559,7 +560,7 @@ const App = (function buildApp() {
     handleOptionsContainerClick(e);
   }
 
-  function handleAltAdjustmentOptionsContainerElClick(e) {
+  function handleAltAdjustmentOptionsListElClick(e) {
     handleOptionsContainerClick(e);
   }
 
@@ -596,9 +597,9 @@ const App = (function buildApp() {
       handleAdjustmentOptionsContainerElClick
     );
 
-    alternativeOptionsContainerEl.addEventListener(
+    alternativeOptionsListEl.addEventListener(
       'click',
-      handleAltAdjustmentOptionsContainerElClick
+      handleAltAdjustmentOptionsListElClick
     );
 
     adjustmentCountSliderEl.addEventListener(
@@ -637,6 +638,9 @@ const App = (function buildApp() {
       .item(0);
     alternativeOptionsContainerEl = document
       .getElementsByClassName('adjustments__alternative-options-container')
+      .item(0);
+    alternativeOptionsListEl = document
+      .getElementsByClassName('adjustments__alternative-options-list')
       .item(0);
   }
 
