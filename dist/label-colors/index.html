@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <title>Label Colors</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png" />
+    <link rel="icon" href="../favicon.ico">
+
+    <link href="./label-colors.css" rel="stylesheet" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+    name="description"
+    content="Label colors to help train an ML model."
+    />
+    <meta property="og:title" content="Color Classifier" />
+    <meta
+    property="og:description"
+    content="Label colors to help train an ML model"
+    />
+    <meta property="og:url" content="https://andyjakubowski.github.io/button-lab/label-colors/" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+    property="og:image"
+    content="../assets/images/opengraph.jpg"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Label Colors" />
+    <meta property="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <main>
+      <div class="main-content">
+        <h1>Label Colors</h1>
+        <h2 class="count-heading__heading">You’ve labeled <span class="count-heading__number"></span> so far</h2>
+        <!-- <div class="color-box"></div> -->
+        <div class="preview__element preview-light-dark">
+          <div class="preview-light-dark__pane preview-light-dark__pane_light">
+            <div class="button button_idle"><span class="button__label">Send</span></div>
+            <!-- <div class="button button_hover"><span class="button__label">Send</span></div>
+            <div class="button button_disabled"><span class="button__label">Send</span></div> -->
+          </div>
+          <div class="preview-light-dark__pane preview-light-dark__pane_dark">
+            <div class="button button_idle"><span class="button__label">Send</span></div>
+            <!-- <div class="button button_hover"><span class="button__label">Send</span></div>
+            <div class="button button_disabled"><span class="button__label">Send</span></div> -->
+          </div>
+        </div>
+        <ul class="buttons-list">
+          <li class="buttons-list__item"><button class="buttons-list__button">1</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">2</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">3</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">4</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">5</button></li>
+          <!-- <li class="buttons-list__item"><button class="buttons-list__button">6</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">7</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">8</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">9</button></li>
+          <li class="buttons-list__item"><button class="buttons-list__button">10</button></li> -->
+        </ul>
+      </div>
+    </main>
+    <footer class="footer">
+      <ul class="footer__link-list">
+        <li class="footer__link-item"><a class="footer__link footer__link-skip" href="">Skip this color</a></li>
+        <li class="footer__link-item"><a class="footer__link footer__link-json" href="">Download JSON</a></li>
+      </ul>
+    </footer>
+    <script src="../util.js"></script>
+    <script src="./label-colors.js"></script>
+  </body>
+</html>

@@ -1,0 +1,234 @@
+@font-face {
+  font-family: 'Ghoulish Intent Rotalic';
+  src: url('./assets/fonts/ghoulishintentrotal.otf') format('opentype');
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  min-height: -webkit-fill-available;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  font-family: sans-serif;
+
+  color: #111;
+  background-color: black;
+}
+
+main {
+  /* padding-block-end: 3em; */
+
+  flex-grow: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin: 0 0 0.5em;
+  max-width: 400px;
+
+  font-family: 'Ghoulish Intent Rotalic';
+  font-size: 79px;
+  line-height: 0.9;
+  font-weight: normal;
+  text-align: center;
+}
+
+.count-heading__heading {
+  margin-block-start: 0;
+  margin-block-end: 1.5em;
+  font-size: 18px;
+  color: #111;
+}
+
+.color-box {
+  width: 280px;
+  height: 280px;
+
+  background-color: aquamarine;
+}
+
+.blob__container {
+  position: relative;
+}
+
+.blob__label-container {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  pointer-events: none;
+}
+
+.prediction-label {
+  margin: 0;
+
+  font-family: 'Ghoulish Intent Rotalic';
+  font-size: 44px;
+  font-weight: normal;
+  text-align: center;
+}
+
+.color-input {
+  margin: 0;
+  padding: 0;
+
+  width: 300px;
+  height: 264px;
+
+  display: block;
+
+  border: none;
+  background-color: none;
+
+  cursor: pointer;
+
+  -webkit-clip-path: url('#blobClipPath');
+  clip-path: url('#blobClipPath');
+}
+
+.preview__element {
+  /* height: 100%; */
+  width: 280px;
+  height: 280px;
+}
+
+.preview-light-dark {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-light-dark__pane {
+  padding: 32px 0;
+  flex-grow: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-light-dark__pane_light {
+  background-color: white;
+}
+
+.preview-light-dark__pane_dark {
+  background-color: #1d1e1f;
+}
+
+.button {
+  box-sizing: border-box;
+  padding: 0 10px;
+  min-width: 60px;
+  height: 44px;
+  border-radius: 4px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: white;
+  font-size: 17px;
+}
+
+.button:not(:first-of-type) {
+  margin-inline-start: 1em;
+}
+
+.button:hover {
+  cursor: pointer;
+}
+
+.button_disabled:hover {
+  cursor: default;
+}
+
+.buttons-list {
+  margin: 2em 0 0;
+  padding: 0;
+  max-width: 320px;
+
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  column-gap: 16px;
+  row-gap: 16px;
+
+  list-style-type: none;
+}
+
+.buttons-list__button {
+  width: 48px;
+  height: 48px;
+
+  border: none;
+  border-radius: 22px;
+
+  background-color: rgba(255, 255, 255, 0.1);
+
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 17px;
+  text-align: center;
+}
+
+.buttons-list__button:hover {
+  color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.13);
+}
+
+.footer {
+  padding-bottom: 1em;
+}
+
+.footer__link-list {
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  justify-content: center;
+
+  list-style-type: none;
+}
+
+.footer__link {
+  padding: 1em;
+
+  display: block;
+
+  color: #111;
+}
+
+.footer_classifier {
+  font-family: 'Ghoulish Intent Rotalic';
+}
+
+.footer__link-github,
+.footer__link-twitter {
+  font-size: 1.5em;
+
+  text-decoration: none;
+}
+
+/* Positioning */
+/* Display */
+/* Colors */
+/* Type */
+/* Other */
