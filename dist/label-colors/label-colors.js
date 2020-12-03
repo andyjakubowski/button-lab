@@ -40,6 +40,8 @@ const Data = (function buildData() {
 
 const App = (function buildApp() {
   const colorBoxEl = document.getElementsByClassName('color-box').item(0);
+  let buttonBadEl;
+  let buttonGoodEl;
   let buttonEls;
   const countHeadingNumberlEl = document
     .getElementsByClassName('count-heading__number')
@@ -86,18 +88,34 @@ const App = (function buildApp() {
     Data.save({ colorHex, labelObject });
   }
 
-  function handleLabelButtonClick(e) {
-    saveColorLabel(e.target);
+  function labelColor(button) {
+    saveColorLabel(button);
     updateDownloadLink();
     updateCountLabel();
     setNewColor();
     displayNewColor();
   }
 
+  function handleLabelButtonClick(e) {
+    labelColor(e.target);
+  }
+
   function handleSkipButtonClick(e) {
     e.preventDefault();
     setNewColor();
     displayNewColor();
+  }
+
+  function handleKeyUp(e) {
+    const spaceKeyCode = 32;
+    const enterKeyCode = 13;
+    const keyCode = e.keyCode;
+
+    if (keyCode == spaceKeyCode) {
+      labelColor(buttonBadEl);
+    } else if (keyCode == enterKeyCode) {
+      labelColor(buttonGoodEl);
+    }
   }
 
   function addEventListeners() {
@@ -112,6 +130,8 @@ const App = (function buildApp() {
       .getElementsByClassName('footer__link-skip')
       .item(0);
     skipButton.addEventListener('click', handleSkipButtonClick);
+
+    document.addEventListener('keyup', handleKeyUp);
   }
 
   function setNewColor() {
@@ -133,6 +153,13 @@ const App = (function buildApp() {
   function setDomReferences() {
     const buttonElsHTMLCollection = document.getElementsByClassName('button');
     buttonEls = [...buttonElsHTMLCollection];
+
+    buttonBadEl = document
+      .getElementsByClassName('button-list__button_bad')
+      .item(0);
+    buttonGoodEl = document
+      .getElementsByClassName('button-list__button_good')
+      .item(0);
   }
 
   return {
