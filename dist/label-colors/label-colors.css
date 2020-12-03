@@ -107,8 +107,12 @@ main {
 
 .preview__element {
   /* height: 100%; */
-  width: 280px;
-  height: 280px;
+  min-width: 300px;
+  min-height: 300px;
+  width: 600px;
+  height: 600px;
+  max-width: 100vw;
+  max-height: 100vw;
 }
 
 .preview-light-dark {
