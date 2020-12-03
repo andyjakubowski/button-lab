@@ -245,6 +245,10 @@ main {
   display: none;
 }
 
+.adjustments__alternative-options-container_active {
+  display: block;
+}
+
 .adjustments__paragraph {
   margin: 16px 24px;
   color: #555;
@@ -258,7 +262,7 @@ main {
 }
 
 .adjustments__options-container,
-.adjustments__alternative-options-container_active {
+.adjustments__alternative-options-list {
   margin-block-end: 32px;
   display: flex;
   flex-grow: 1;
